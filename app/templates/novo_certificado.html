@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="content-narrow">
+    <div class="mb-4">
+        <h1 class="h3 mb-1">Novo certificado</h1>
+        <p class="text-secondary mb-0">Cadastre manualmente um arquivo .pfx e seus dados de contato.</p>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" class="form-panel" data-phone-form>
+        <div class="mb-3">
+            <label for="arquivo" class="form-label">Arquivo .pfx</label>
+            <input class="form-control" type="file" id="arquivo" name="arquivo" accept=".pfx" required>
+        </div>
+        <div class="mb-3">
+            <label for="senha" class="form-label">Senha do certificado</label>
+            <input class="form-control" type="password" id="senha" name="senha" autocomplete="off" required>
+        </div>
+        <div class="mb-3">
+            <label for="nome_contato" class="form-label">Nome do contato/cliente</label>
+            <input class="form-control" type="text" id="nome_contato" name="nome_contato" required>
+        </div>
+        <div class="mb-3">
+            <label for="telefone_limpo" class="form-label">Telefone limpo</label>
+            <input class="form-control" type="text" id="telefone_limpo" name="telefone_limpo" inputmode="numeric" data-phone-input required>
+            <div class="form-text">{{ instrucao }}</div>
+        </div>
+        <div class="mb-4">
+            <label for="observacao" class="form-label">Observacao</label>
+            <textarea class="form-control" id="observacao" name="observacao" rows="3"></textarea>
+        </div>
+        <div class="d-flex gap-2">
+            <button class="btn btn-primary" type="submit" data-save-button disabled>Salvar</button>
+            <a class="btn btn-outline-secondary" href="{{ url_for('certificados.listar') }}">Cancelar</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+        <h1 class="h3 mb-1">{{ certificado.nome_extraido or certificado.nome_arquivo_original }}</h1>
+        <span class="badge text-bg-{{ status_class(certificado.status) }}">{{ certificado.status }}</span>
+    </div>
+    <div class="d-flex gap-2">
+        <a class="btn btn-outline-secondary" href="{{ url_for('certificados.download', certificado_id=certificado.id) }}">Baixar .pfx</a>
+        <form method="post" action="{{ url_for('mensagens.gerar', certificado_id=certificado.id) }}">
+            <button class="btn btn-success" type="submit" {% if not certificado.data_validade %}disabled{% endif %}>Gerar mensagem</button>
+        </form>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-12 col-xl-8">
+        <div class="detail-grid">
+            <div><span>Arquivo</span><strong>{{ certificado.nome_arquivo_original }}</strong></div>
+            <div><span>Contato</span><strong>{{ certificado.nome_contato or "-" }}</strong></div>
+            <div><span>Telefone limpo</span><strong>{{ certificado.telefone_limpo or "-" }}</strong></div>
+            <div><span>CNPJ/CPF</span><strong>{{ certificado.cnpj_cpf or "-" }}</strong></div>
+            <div><span>Tipo documento</span><strong>{{ certificado.tipo_documento or "-" }}</strong></div>
+            <div><span>Validade</span><strong>{{ certificado.data_validade|date_br }}</strong></div>
+            <div><span>Dias para vencer</span><strong>{{ dias_para_vencer(certificado.data_validade) if certificado.data_validade else "-" }}</strong></div>
+            <div><span>Serial</span><strong>{{ certificado.serial_number or "-" }}</strong></div>
+        </div>
+
+        <div class="form-panel mt-4">
+            <h2 class="h5">Senha</h2>
+            <div class="input-group">
+                <input class="form-control" type="password" value="********" data-password-output readonly>
+                <button class="btn btn-outline-secondary" type="button" data-show-password data-cert-id="{{ certificado.id }}">Mostrar</button>
+                <button class="btn btn-outline-secondary" type="button" data-copy-password data-cert-id="{{ certificado.id }}">Copiar</button>
+            </div>
+        </div>
+
+        <div class="form-panel mt-4">
+            <h2 class="h5">Dados do certificado</h2>
+            <dl class="mb-0">
+                <dt>Subject</dt>
+                <dd>{{ certificado.subject or "-" }}</dd>
+                <dt>Issuer</dt>
+                <dd>{{ certificado.issuer or "-" }}</dd>
+                <dt>Thumbprint SHA1</dt>
+                <dd class="text-break">{{ certificado.thumbprint_sha1 or "-" }}</dd>
+                <dt>Thumbprint SHA256</dt>
+                <dd class="text-break">{{ certificado.thumbprint_sha256 or "-" }}</dd>
+                <dt>Observacao</dt>
+                <dd>{{ certificado.observacao or "-" }}</dd>
+            </dl>
+        </div>
+    </div>
+    <div class="col-12 col-xl-4">
+        <div class="form-panel">
+            <h2 class="h5">Auditoria</h2>
+            <div class="audit-list">
+                {% for evento in eventos %}
+                    <div>
+                        <strong>{{ evento.tipo_evento }}</strong>
+                        <span>{{ evento.descricao }}</span>
+                        <small>{{ evento.created_at }}</small>
+                    </div>
+                {% else %}
+                    <p class="text-secondary mb-0">Sem eventos registrados.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

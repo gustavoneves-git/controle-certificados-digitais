@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="content-narrow">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h1 class="h3 mb-1">Mensagem gerada</h1>
+            <p class="text-secondary mb-0">{{ certificado.nome_extraido or certificado.nome_arquivo_original }}</p>
+        </div>
+        <a class="btn btn-outline-secondary" href="{{ url_for('certificados.detalhe', certificado_id=certificado.id) }}">Voltar</a>
+    </div>
+
+    <div class="form-panel">
+        <label class="form-label" for="mensagem">Texto para copiar</label>
+        <textarea id="mensagem" class="form-control message-box" rows="12" readonly data-message-output>{{ mensagem.mensagem }}</textarea>
+        <button class="btn btn-primary mt-3" type="button" data-copy-message>Copiar mensagem</button>
+    </div>
+</div>
+{% endblock %}

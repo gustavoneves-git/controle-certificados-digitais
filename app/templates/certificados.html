@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+        <h1 class="h3 mb-1">Certificados</h1>
+        <p class="text-secondary mb-0">Controle de validade, senha, contato e arquivos .pfx.</p>
+    </div>
+    <a class="btn btn-primary" href="{{ url_for('certificados.novo') }}">Novo certificado</a>
+</div>
+
+<div class="table-responsive table-shell">
+    <table class="table align-middle mb-0">
+        <thead>
+        <tr>
+            <th>Status</th>
+            <th>Nome extraido</th>
+            <th>CNPJ/CPF</th>
+            <th>Tipo</th>
+            <th>Contato</th>
+            <th>Telefone</th>
+            <th>Validade</th>
+            <th>Dias</th>
+            <th>Emissor</th>
+            <th>Acoes</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for cert in certificados %}
+            <tr>
+                <td><span class="badge text-bg-{{ status_class(cert.status) }}">{{ cert.status }}</span></td>
+                <td>{{ cert.nome_extraido or "-" }}</td>
+                <td>{{ cert.cnpj_cpf or "-" }}</td>
+                <td>{{ cert.tipo_documento or "-" }}</td>
+                <td>{{ cert.nome_contato or "-" }}</td>
+                <td>{{ cert.telefone_limpo or "-" }}</td>
+                <td>{{ cert.data_validade|date_br }}</td>
+                <td>{{ dias_para_vencer(cert.data_validade) if cert.data_validade else "-" }}</td>
+                <td class="text-truncate issuer-cell" title="{{ cert.issuer or '' }}">{{ cert.issuer or "-" }}</td>
+                <td class="actions-cell">
+                    <a class="btn btn-sm btn-outline-primary" href="{{ url_for('certificados.detalhe', certificado_id=cert.id) }}">Ver</a>
+                    <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('certificados.download', certificado_id=cert.id) }}">Baixar</a>
+                    <button class="btn btn-sm btn-outline-secondary" data-copy-password data-cert-id="{{ cert.id }}">Copiar senha</button>
+                    <form class="d-inline" method="post" action="{{ url_for('mensagens.gerar', certificado_id=cert.id) }}">
+                        <button class="btn btn-sm btn-outline-success" type="submit" {% if not cert.data_validade %}disabled{% endif %}>Gerar mensagem</button>
+                    </form>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="10" class="text-center text-secondary py-5">Nenhum certificado cadastrado.</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

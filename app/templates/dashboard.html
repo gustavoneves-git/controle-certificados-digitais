@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+        <h1 class="h3 mb-1">Dashboard</h1>
+        <p class="text-secondary mb-0">Visao geral dos certificados cadastrados.</p>
+    </div>
+    <a class="btn btn-primary" href="{{ url_for('certificados.novo') }}">Cadastrar certificado</a>
+</div>
+
+<div class="row g-3">
+    <div class="col-12 col-sm-6 col-xl-2">
+        <div class="metric">
+            <span>Total</span>
+            <strong>{{ stats.total }}</strong>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-xl-2">
+        <div class="metric metric-danger">
+            <span>Vencidos</span>
+            <strong>{{ stats.vencidos }}</strong>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-xl-2">
+        <div class="metric metric-warning">
+            <span>Vencem em 15 dias</span>
+            <strong>{{ stats.vence_15 }}</strong>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-xl-2">
+        <div class="metric metric-success">
+            <span>Validos</span>
+            <strong>{{ stats.validos }}</strong>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-xl-2">
+        <div class="metric metric-muted">
+            <span>Senha invalida</span>
+            <strong>{{ stats.senha_invalida }}</strong>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-xl-2">
+        <div class="metric metric-muted">
+            <span>Sem telefone</span>
+            <strong>{{ stats.sem_telefone }}</strong>
+        </div>
+    </div>
+</div>
+{% endblock %}
