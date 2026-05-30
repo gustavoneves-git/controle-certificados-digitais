@@ -37,6 +37,28 @@
         </div>
 
         <div class="form-panel mt-4">
+            <h2 class="h5">Diagnostico tecnico</h2>
+            <dl class="mb-0 diagnostic-list">
+                <dt>Documento extraido</dt>
+                <dd>{{ certificado.cnpj_cpf or "-" }}</dd>
+                <dt>Tipo do documento</dt>
+                <dd>{{ certificado.tipo_documento or "-" }}</dd>
+                <dt>Origem da validade</dt>
+                <dd>CERTIFICADO_PFX</dd>
+                <dt>Status calculado</dt>
+                <dd>{{ certificado.status }}</dd>
+                <dt>Dias ate vencer</dt>
+                <dd>{{ dias_para_vencer(certificado.data_validade) if certificado.data_validade else "-" }}</dd>
+                <dt>Thumbprint SHA1</dt>
+                <dd class="text-break">{{ certificado.thumbprint_sha1 or "-" }}</dd>
+                <dt>Thumbprint SHA256</dt>
+                <dd class="text-break">{{ certificado.thumbprint_sha256 or "-" }}</dd>
+                <dt>Serial number</dt>
+                <dd class="text-break">{{ certificado.serial_number or "-" }}</dd>
+            </dl>
+        </div>
+
+        <div class="form-panel mt-4">
             <h2 class="h5">Dados do certificado</h2>
             <dl class="mb-0">
                 <dt>Subject</dt>

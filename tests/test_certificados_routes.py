@@ -73,14 +73,38 @@ def test_upload_invalido_nao_usa_nome_do_arquivo_como_validade(tmp_path, monkeyp
             "observacao": "",
         },
         content_type="multipart/form-data",
-        follow_redirects=False,
+        follow_redirects=True,
     )
 
-    assert response.status_code == 302
+    assert response.status_code == 200
+    assert b"Nao foi possivel abrir o certificado" in response.data
+    assert b"O arquivo enviado nao parece ser um certificado .pfx valido" in response.data
     certificado = _db_rows(app.config["DATABASE_PATH"], "certificados")[0]
     assert certificado["status"] == "SENHA_INVALIDA"
     assert certificado["data_validade"] is None
     assert "2099-12-31" in certificado["nome_arquivo_original"]
+
+
+def test_extensao_invalida_mostra_mensagem_amigavel(tmp_path, monkeypatch):
+    app = _app(tmp_path, monkeypatch)
+    client = app.test_client()
+
+    response = client.post(
+        "/certificados/novo",
+        data={
+            "arquivo": (io.BytesIO(b"texto"), "certificado.txt"),
+            "senha": "123456",
+            "nome_contato": "Maria",
+            "telefone_limpo": "916031398",
+            "observacao": "",
+        },
+        content_type="multipart/form-data",
+        follow_redirects=True,
+    )
+
+    assert response.status_code == 200
+    assert b"O arquivo enviado nao parece ser um certificado .pfx valido" in response.data
+    assert _db_rows(app.config["DATABASE_PATH"], "certificados") == []
 
 
 def test_fluxo_sensivel_registra_auditoria_e_nao_cacheia_senha(tmp_path, monkeypatch):
@@ -100,6 +124,13 @@ def test_fluxo_sensivel_registra_auditoria_e_nao_cacheia_senha(tmp_path, monkeyp
     )
     certificado = _db_rows(app.config["DATABASE_PATH"], "certificados")[0]
     certificado_id = certificado["id"]
+
+    detalhe_response = client.get(f"/certificados/{certificado_id}")
+    assert detalhe_response.status_code == 200
+    assert b"Diagnostico tecnico" in detalhe_response.data
+    assert b"CERTIFICADO_PFX" in detalhe_response.data
+    assert b"Documento extraido" in detalhe_response.data
+    assert b"Status calculado" in detalhe_response.data
 
     senha_response = client.post(f"/certificados/{certificado_id}/senha")
     assert senha_response.status_code == 200

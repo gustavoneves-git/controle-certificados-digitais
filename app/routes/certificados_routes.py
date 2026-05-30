@@ -54,7 +54,7 @@ def novo():
     observacao = request.form.get("observacao", "").strip()
 
     if not arquivo or not extensao_valida(arquivo.filename):
-        flash("Envie um arquivo .pfx valido.", "danger")
+        flash("O arquivo enviado nao parece ser um certificado .pfx valido.", "danger")
         return redirect(url_for("certificados.novo"))
 
     telefone_valido = is_telefone_limpo_valido(telefone_limpo)
@@ -84,6 +84,8 @@ def novo():
             "nome_extraido": None,
         }
         status = SENHA_INVALIDA
+        flash("Nao foi possivel abrir o certificado. Verifique se a senha esta correta.", "danger")
+        flash("O arquivo enviado nao parece ser um certificado .pfx valido.", "warning")
 
     certificado_id = certificados.create_certificado(
         {
@@ -102,7 +104,8 @@ def novo():
     if status == SENHA_INVALIDA:
         auditoria.registrar_evento(certificado_id, "SENHA_INVALIDA", "Senha invalida ao abrir o arquivo .pfx.")
 
-    flash("Certificado cadastrado.", "success")
+    if status != SENHA_INVALIDA:
+        flash("Certificado cadastrado.", "success")
     return redirect(url_for("certificados.detalhe", certificado_id=certificado_id))
 
 

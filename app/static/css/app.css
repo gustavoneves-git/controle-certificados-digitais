@@ -98,6 +98,28 @@ body {
     display: block;
 }
 
+.diagnostic-list {
+    display: grid;
+    grid-template-columns: minmax(150px, 220px) 1fr;
+    column-gap: 16px;
+    row-gap: 8px;
+}
+
+.diagnostic-list dt {
+    color: #637083;
+    font-weight: 600;
+}
+
+.diagnostic-list dd {
+    margin-bottom: 0;
+}
+
 .message-box {
     white-space: pre-wrap;
+}
+
+@media (max-width: 640px) {
+    .diagnostic-list {
+        grid-template-columns: 1fr;
+    }
 }
