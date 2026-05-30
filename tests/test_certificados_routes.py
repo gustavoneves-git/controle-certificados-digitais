@@ -1,6 +1,7 @@
 import io
 import sqlite3
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 
 from cryptography import x509
 from cryptography.hazmat.primitives import hashes, serialization
@@ -47,6 +48,7 @@ def _app(tmp_path, monkeypatch):
             "TESTING": True,
             "DATABASE_PATH": str(tmp_path / "app.db"),
             "STORAGE_CERTIFICADOS": str(tmp_path / "certificados"),
+            "STORAGE_CERTIFICADOS_ARQUIVADOS": str(tmp_path / "certificados_arquivados"),
         }
     )
 
@@ -185,6 +187,7 @@ def test_download_funciona_com_caminho_relativo_de_storage(tmp_path, monkeypatch
             "TESTING": True,
             "DATABASE_PATH": "data/app.db",
             "STORAGE_CERTIFICADOS": "storage/certificados",
+            "STORAGE_CERTIFICADOS_ARQUIVADOS": "storage/certificados_arquivados",
         }
     )
     client = app.test_client()
@@ -230,7 +233,7 @@ def test_certificado_mais_novo_substitui_ativo_do_mesmo_documento(tmp_path, monk
     _post_pfx(client, base / "empresa_substituicao_antigo.pfx")
     certificado_antigo = _db_rows(app.config["DATABASE_PATH"], "certificados")[0]
     caminho_antigo = certificado_antigo["caminho_arquivo"]
-    assert (tmp_path / caminho_antigo).exists()
+    assert Path(caminho_antigo).exists()
     _post_pfx(client, base / "empresa_substituicao_novo.pfx")
 
     certificados = _db_rows(app.config["DATABASE_PATH"], "certificados")
@@ -238,14 +241,42 @@ def test_certificado_mais_novo_substitui_ativo_do_mesmo_documento(tmp_path, monk
     assert antigo["status_registro"] == "SUBSTITUIDO"
     assert antigo["substituido_por_id"] == novo["id"]
     assert novo["status_registro"] == "ATIVO"
-    assert not (tmp_path / caminho_antigo).exists()
+    assert not Path(caminho_antigo).exists()
+    assert Path(antigo["caminho_arquivo"]).exists()
+    assert Path(antigo["caminho_arquivo"]).parent == Path(app.config["STORAGE_CERTIFICADOS_ARQUIVADOS"])
+    assert Path(novo["caminho_arquivo"]).exists()
 
     eventos = [
         row["tipo_evento"]
         for row in _db_rows(app.config["DATABASE_PATH"], "eventos_auditoria")
     ]
     assert eventos.count("CERTIFICADO_SUBSTITUIDO") == 2
-    assert "ARQUIVO_CERTIFICADO_REMOVIDO" in eventos
+    assert "CERTIFICADO_ARQUIVO_ARQUIVADO" in eventos
+
+
+def test_exclusao_manual_remove_apenas_arquivo_arquivado_de_substituido(tmp_path, monkeypatch):
+    app = _app(tmp_path, monkeypatch)
+    client = app.test_client()
+    base = _gerar_certificados_rota(tmp_path)
+
+    _post_pfx(client, base / "empresa_substituicao_antigo.pfx")
+    _post_pfx(client, base / "empresa_substituicao_novo.pfx")
+    antigo = _db_rows(app.config["DATABASE_PATH"], "certificados")[0]
+    caminho_arquivado = Path(antigo["caminho_arquivo"])
+    assert caminho_arquivado.exists()
+
+    response = client.post(
+        f"/certificados/{antigo['id']}/arquivo-arquivado/excluir",
+        follow_redirects=True,
+    )
+
+    assert response.status_code == 200
+    assert not caminho_arquivado.exists()
+    eventos = [
+        row["tipo_evento"]
+        for row in _db_rows(app.config["DATABASE_PATH"], "eventos_auditoria")
+    ]
+    assert "CERTIFICADO_ARQUIVO_REMOVIDO" in eventos
 
 
 def test_bloqueia_substituicao_com_validade_menor_ou_igual(tmp_path, monkeypatch):

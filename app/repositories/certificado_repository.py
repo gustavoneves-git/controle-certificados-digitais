@@ -24,6 +24,7 @@ def create_certificado(data):
         "status_vencimento",
         "substituido_por_id",
         "substituido_em",
+        "arquivo_arquivado_em",
     ]
     values = [data.get(field) for field in fields]
     placeholders = ", ".join(["?"] * len(fields))
@@ -85,7 +86,7 @@ def get_ativo_by_documento(cnpj_cpf):
     ).fetchone()
 
 
-def marcar_substituido(certificado_id, substituido_por_id):
+def marcar_substituido(certificado_id, substituido_por_id, caminho_arquivo_arquivado=None):
     db = get_db()
     db.execute(
         """
@@ -93,10 +94,28 @@ def marcar_substituido(certificado_id, substituido_por_id):
         SET status_registro = 'SUBSTITUIDO',
             substituido_por_id = ?,
             substituido_em = CURRENT_TIMESTAMP,
+            caminho_arquivo = COALESCE(?, caminho_arquivo),
+            arquivo_arquivado_em = CASE
+                WHEN ? IS NOT NULL THEN CURRENT_TIMESTAMP
+                ELSE arquivo_arquivado_em
+            END,
             updated_at = CURRENT_TIMESTAMP
         WHERE id = ?
         """,
-        (substituido_por_id, certificado_id),
+        (substituido_por_id, caminho_arquivo_arquivado, caminho_arquivo_arquivado, certificado_id),
+    )
+    db.commit()
+
+
+def registrar_arquivo_removido(certificado_id):
+    db = get_db()
+    db.execute(
+        """
+        UPDATE certificados
+        SET updated_at = CURRENT_TIMESTAMP
+        WHERE id = ?
+        """,
+        (certificado_id,),
     )
     db.commit()
 

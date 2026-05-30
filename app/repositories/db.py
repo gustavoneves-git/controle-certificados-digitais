@@ -37,6 +37,7 @@ def init_db():
             status_vencimento TEXT,
             substituido_por_id INTEGER,
             substituido_em TEXT,
+            arquivo_arquivado_em TEXT,
             created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
             updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY(substituido_por_id) REFERENCES certificados(id)
@@ -77,6 +78,7 @@ def _ensure_certificados_columns(db):
         "status_vencimento": "ALTER TABLE certificados ADD COLUMN status_vencimento TEXT",
         "substituido_por_id": "ALTER TABLE certificados ADD COLUMN substituido_por_id INTEGER",
         "substituido_em": "ALTER TABLE certificados ADD COLUMN substituido_em TEXT",
+        "arquivo_arquivado_em": "ALTER TABLE certificados ADD COLUMN arquivo_arquivado_em TEXT",
     }
     for column, sql in migrations.items():
         if column not in columns:

@@ -80,10 +80,16 @@ Acesse `http://127.0.0.1:5000`.
 
 Login padrao da Mark 1:
 
-- Usuario: `legal`
-- Senha: `consiste`
+- configure `APP_LOGIN_USER` no `.env`;
+- configure `APP_LOGIN_PASSWORD_HASH` no `.env`.
 
-Esses valores podem ser alterados no `.env` com `LOGIN_USUARIO` e `LOGIN_SENHA`.
+Para gerar o hash da senha local:
+
+```bash
+.venv/bin/python scripts/gerar_hash_senha.py
+```
+
+Copie o hash impresso para `APP_LOGIN_PASSWORD_HASH`. A Mark 1 usa login simples nesta fase, sem cadastro de usuarios.
 
 ## Cadastro de certificado
 
@@ -173,7 +179,7 @@ Ao cadastrar um novo `.pfx`, o sistema sempre le o certificado antes de decidir.
 - validade nova menor ou igual: o cadastro e bloqueado e nada novo fica ativo;
 - documento nao identificado: o certificado fica `VERIFICAR` e nao participa da substituicao automatica.
 
-Quando um certificado e substituido, o arquivo `.pfx` antigo e removido automaticamente do storage para evitar uso operacional do certificado vencido/antigo. O registro antigo permanece no banco como historico, com auditoria.
+Quando um certificado e substituido, o arquivo `.pfx` antigo e movido automaticamente para `storage/certificados_arquivados/`. O registro antigo permanece no banco como historico, com auditoria. No detalhe de um certificado `SUBSTITUIDO`, existe uma acao manual para excluir definitivamente o arquivo arquivado, com confirmacao.
 
 Dashboard e lista principal consideram apenas certificados `ATIVO` por padrao. Certificados `SUBSTITUIDO` ficam disponiveis pelo filtro da lista e nao entram como pendencia principal.
 
@@ -207,6 +213,7 @@ A busca aceita CNPJ/CPF, nome extraido, nome do contato e telefone limpo.
 - A senha do certificado nunca e salva em texto puro.
 - `CERT_PASSWORD_KEY` deve ser uma chave Fernet valida e deve ficar somente no `.env`.
 - A pasta `storage/certificados` e ignorada pelo Git.
+- A pasta `storage/certificados_arquivados` e ignorada pelo Git.
 - O banco `data/*.db` e ignorado pelo Git.
 - A pasta `tmp/` e ignorada pelo Git.
 - Arquivos `.pfx` nao devem ser enviados ao repositorio.

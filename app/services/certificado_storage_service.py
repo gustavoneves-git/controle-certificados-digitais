@@ -1,5 +1,6 @@
 import os
 import secrets
+import shutil
 from pathlib import Path
 from werkzeug.utils import secure_filename
 
@@ -33,3 +34,16 @@ def remover_certificado(caminho_arquivo, storage_dir):
         return False
     Path(caminho_arquivo).resolve().unlink()
     return True
+
+
+def arquivar_certificado(caminho_arquivo, storage_dir, archive_dir):
+    if not caminho_permitido(caminho_arquivo, storage_dir):
+        return None
+    origem = Path(caminho_arquivo).resolve()
+    destino_dir = Path(archive_dir)
+    destino_dir.mkdir(parents=True, exist_ok=True)
+    destino = destino_dir / origem.name
+    if destino.exists():
+        destino = destino_dir / f"{secrets.token_hex(4)}_{origem.name}"
+    shutil.move(str(origem), str(destino))
+    return str(destino)

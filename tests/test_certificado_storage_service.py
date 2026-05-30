@@ -1,6 +1,11 @@
 from pathlib import Path
 
-from app.services.certificado_storage_service import caminho_permitido, remover_certificado, salvar_certificado
+from app.services.certificado_storage_service import (
+    arquivar_certificado,
+    caminho_permitido,
+    remover_certificado,
+    salvar_certificado,
+)
 
 
 class FakeUpload:
@@ -43,3 +48,19 @@ def test_remover_certificado_apaga_apenas_arquivo_permitido(tmp_path):
     assert not permitido.exists()
     assert not remover_certificado(fora, tmp_path)
     assert fora.exists()
+
+
+def test_arquivar_certificado_move_para_pasta_de_arquivados(tmp_path):
+    storage = tmp_path / "certificados"
+    arquivados = tmp_path / "arquivados"
+    storage.mkdir()
+    arquivo = storage / "certificado.pfx"
+    arquivo.write_bytes(b"pfx")
+
+    destino = arquivar_certificado(arquivo, storage, arquivados)
+
+    assert destino is not None
+    assert not arquivo.exists()
+    assert Path(destino).exists()
+    assert Path(destino).parent == arquivados
+    assert Path(destino).read_bytes() == b"pfx"

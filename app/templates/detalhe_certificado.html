@@ -15,6 +15,9 @@
 {% if certificado.status_registro == "SUBSTITUIDO" %}
     <div class="alert alert-secondary">
         Este certificado foi substituido por um certificado mais novo.
+        {% if certificado.arquivo_arquivado_em %}
+            O arquivo .pfx foi arquivado em storage de certificados arquivados.
+        {% endif %}
     </div>
 {% endif %}
 
@@ -67,6 +70,8 @@
                 <dd>{{ "#" ~ certificado.substituido_por_id if certificado.substituido_por_id else "-" }}</dd>
                 <dt>Substituido em</dt>
                 <dd>{{ certificado.substituido_em or "-" }}</dd>
+                <dt>Arquivo arquivado em</dt>
+                <dd>{{ certificado.arquivo_arquivado_em or "-" }}</dd>
                 <dt>Thumbprint SHA1</dt>
                 <dd class="text-break">{{ certificado.thumbprint_sha1 or "-" }}</dd>
                 <dt>Thumbprint SHA256</dt>
@@ -93,6 +98,16 @@
                 <button class="btn btn-success" type="submit" {% if not certificado.data_validade %}disabled{% endif %}>Gerar mensagem</button>
             </form>
         </div>
+
+        {% if certificado.status_registro == "SUBSTITUIDO" and certificado.arquivo_arquivado_em %}
+            <div class="form-panel mt-4">
+                <h2 class="h5">Arquivo arquivado</h2>
+                <p class="text-secondary">Use esta acao somente depois de confirmar que o certificado substituido nao precisa mais ser baixado.</p>
+                <form method="post" action="{{ url_for('certificados.excluir_arquivo_arquivado', certificado_id=certificado.id) }}" onsubmit="return confirm('Excluir definitivamente o arquivo .pfx arquivado deste certificado substituido?');">
+                    <button class="btn btn-outline-danger" type="submit">Excluir arquivo arquivado</button>
+                </form>
+            </div>
+        {% endif %}
     </div>
     <div class="col-12 col-xl-4">
         <div class="form-panel">

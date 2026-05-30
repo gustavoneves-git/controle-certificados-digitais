@@ -15,6 +15,7 @@ from app.repositories import auditoria_repository as auditoria
 from app.repositories import certificado_repository as certificados
 from app.services.certificado_reader_service import SenhaCertificadoInvalida, ler_pfx
 from app.services.certificado_storage_service import (
+    arquivar_certificado,
     caminho_permitido,
     extensao_valida,
     remover_certificado,
@@ -148,6 +149,7 @@ def novo():
             "status_vencimento": status_vencimento,
             "substituido_por_id": substituido_por_id,
             "substituido_em": substituido_em,
+            "arquivo_arquivado_em": None,
             **dados_certificado,
         }
     )
@@ -163,11 +165,17 @@ def novo():
         )
 
     if certificado_ativo_existente and certificado_ativo_existente["id"] != certificado_id:
-        certificados.marcar_substituido(certificado_ativo_existente["id"], certificado_id)
-        arquivo_antigo_removido = remover_certificado(
+        caminho_arquivado = arquivar_certificado(
             certificado_ativo_existente["caminho_arquivo"],
             current_app.config["STORAGE_CERTIFICADOS"],
+            current_app.config["STORAGE_CERTIFICADOS_ARQUIVADOS"],
         )
+        certificados.marcar_substituido(
+            certificado_ativo_existente["id"],
+            certificado_id,
+            caminho_arquivado,
+        )
+        arquivo_antigo_arquivado = caminho_arquivado is not None
         auditoria.registrar_evento(
             certificado_ativo_existente["id"],
             "CERTIFICADO_SUBSTITUIDO",
@@ -175,10 +183,10 @@ def novo():
         )
         auditoria.registrar_evento(
             certificado_ativo_existente["id"],
-            "ARQUIVO_CERTIFICADO_REMOVIDO" if arquivo_antigo_removido else "ARQUIVO_CERTIFICADO_NAO_ENCONTRADO",
-            "Arquivo .pfx antigo removido automaticamente apos substituicao."
-            if arquivo_antigo_removido
-            else "Arquivo .pfx antigo nao foi encontrado para remocao automatica.",
+            "CERTIFICADO_ARQUIVO_ARQUIVADO" if arquivo_antigo_arquivado else "ARQUIVO_CERTIFICADO_NAO_ENCONTRADO",
+            "Arquivo .pfx antigo movido para storage de arquivados."
+            if arquivo_antigo_arquivado
+            else "Arquivo .pfx antigo nao foi encontrado para arquivamento.",
         )
         auditoria.registrar_evento(
             certificado_id,
@@ -215,6 +223,8 @@ def download(certificado_id):
         return redirect(url_for("certificados.listar"))
     if not caminho_permitido(
         certificado["caminho_arquivo"], current_app.config["STORAGE_CERTIFICADOS"]
+    ) and not caminho_permitido(
+        certificado["caminho_arquivo"], current_app.config["STORAGE_CERTIFICADOS_ARQUIVADOS"]
     ):
         flash("Arquivo .pfx nao encontrado no storage. Verifique se o certificado ainda existe na pasta configurada.", "warning")
         return redirect(url_for("certificados.detalhe", certificado_id=certificado_id))
@@ -224,6 +234,32 @@ def download(certificado_id):
         as_attachment=True,
         download_name=certificado["nome_arquivo_original"],
     )
+
+
+@certificados_bp.route("/<int:certificado_id>/arquivo-arquivado/excluir", methods=["POST"])
+def excluir_arquivo_arquivado(certificado_id):
+    certificado = certificados.get_certificado(certificado_id)
+    if certificado is None:
+        flash("Certificado nao encontrado.", "warning")
+        return redirect(url_for("certificados.listar"))
+    if certificado["status_registro"] != "SUBSTITUIDO":
+        flash("Somente certificados substituidos podem ter arquivo arquivado excluido.", "warning")
+        return redirect(url_for("certificados.detalhe", certificado_id=certificado_id))
+    removido = remover_certificado(
+        certificado["caminho_arquivo"],
+        current_app.config["STORAGE_CERTIFICADOS_ARQUIVADOS"],
+    )
+    if removido:
+        certificados.registrar_arquivo_removido(certificado_id)
+        auditoria.registrar_evento(
+            certificado_id,
+            "CERTIFICADO_ARQUIVO_REMOVIDO",
+            "Arquivo .pfx arquivado removido manualmente.",
+        )
+        flash("Arquivo arquivado removido.", "success")
+    else:
+        flash("Arquivo arquivado nao encontrado.", "warning")
+    return redirect(url_for("certificados.detalhe", certificado_id=certificado_id))
 
 
 @certificados_bp.route("/<int:certificado_id>/senha", methods=["POST"])
