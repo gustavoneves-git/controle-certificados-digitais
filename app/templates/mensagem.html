@@ -11,9 +11,11 @@
     </div>
 
     <div class="form-panel">
+        <h2 class="h5">Previa da mensagem</h2>
+        <p class="text-secondary">A Mark 1 apenas gera o texto. O envio deve ser feito manualmente.</p>
         <label class="form-label" for="mensagem">Texto para copiar</label>
         <textarea id="mensagem" class="form-control message-box" rows="12" readonly data-message-output>{{ mensagem.mensagem }}</textarea>
-        <button class="btn btn-primary mt-3" type="button" data-copy-message>Copiar mensagem</button>
+        <button class="btn btn-primary mt-3" type="button" data-copy-message data-message-id="{{ mensagem.id }}">Copiar mensagem</button>
     </div>
 </div>
 {% endblock %}

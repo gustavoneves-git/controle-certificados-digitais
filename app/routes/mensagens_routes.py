@@ -1,4 +1,4 @@
-from flask import Blueprint, flash, redirect, render_template, url_for
+from flask import Blueprint, flash, jsonify, redirect, render_template, url_for
 
 from app.repositories import auditoria_repository as auditoria
 from app.repositories import certificado_repository as certificados
@@ -34,3 +34,16 @@ def detalhe(mensagem_id):
         return redirect(url_for("certificados.listar"))
     certificado = certificados.get_certificado(mensagem["certificado_id"])
     return render_template("mensagem.html", mensagem=mensagem, certificado=certificado)
+
+
+@mensagens_bp.route("/<int:mensagem_id>/copiar", methods=["POST"])
+def registrar_copia(mensagem_id):
+    mensagem = mensagens.get_mensagem(mensagem_id)
+    if mensagem is None:
+        return jsonify({"error": "Mensagem nao encontrada"}), 404
+    auditoria.registrar_evento(
+        mensagem["certificado_id"],
+        "MENSAGEM_COPIADA",
+        "Mensagem copiada para envio manual.",
+    )
+    return jsonify({"ok": True})

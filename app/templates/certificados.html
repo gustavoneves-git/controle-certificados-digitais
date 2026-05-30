@@ -9,11 +9,30 @@
     <a class="btn btn-primary" href="{{ url_for('certificados.novo') }}">Novo certificado</a>
 </div>
 
-<div class="d-flex gap-2 mb-3">
-    <a class="btn btn-sm {{ 'btn-primary' if filtro == 'ATIVO' else 'btn-outline-primary' }}" href="{{ url_for('certificados.listar') }}">Ativos</a>
-    <a class="btn btn-sm {{ 'btn-primary' if filtro == 'SUBSTITUIDO' else 'btn-outline-primary' }}" href="{{ url_for('certificados.listar', status_registro='SUBSTITUIDO') }}">Substituidos</a>
-    <a class="btn btn-sm {{ 'btn-primary' if filtro == 'VERIFICAR' else 'btn-outline-primary' }}" href="{{ url_for('certificados.listar', status_registro='VERIFICAR') }}">Verificar</a>
-    <a class="btn btn-sm {{ 'btn-primary' if filtro == 'TODOS' else 'btn-outline-primary' }}" href="{{ url_for('certificados.listar', status_registro='TODOS') }}">Todos</a>
+<div class="filter-panel mb-3">
+    <div class="quick-filters">
+        {% for key, label in [
+            ('ATIVO', 'Ativos'),
+            ('VENCIDO', 'Vencidos'),
+            ('VENCE_EM_15_DIAS', 'Vencem em 15 dias'),
+            ('VALIDO', 'Validos'),
+            ('VERIFICAR', 'Verificar'),
+            ('SEM_TELEFONE', 'Sem telefone'),
+            ('SENHA_INVALIDA', 'Senha invalida'),
+            ('SUBSTITUIDO', 'Substituidos'),
+            ('TODOS', 'Todos')
+        ] %}
+            <a class="btn btn-sm {{ 'btn-primary' if filtro == key else 'btn-outline-primary' }}" href="{{ url_for('certificados.listar', filtro=key, busca=busca) }}">{{ label }}</a>
+        {% endfor %}
+    </div>
+    <form class="search-form" method="get" action="{{ url_for('certificados.listar') }}">
+        <input type="hidden" name="filtro" value="{{ filtro }}">
+        <input class="form-control form-control-sm" type="search" name="busca" value="{{ busca }}" placeholder="Buscar por CNPJ/CPF, nome, contato ou telefone">
+        <button class="btn btn-sm btn-outline-secondary" type="submit">Buscar</button>
+        {% if busca %}
+            <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('certificados.listar', filtro=filtro) }}">Limpar</a>
+        {% endif %}
+    </form>
 </div>
 
 <div class="table-responsive table-shell">
@@ -46,12 +65,12 @@
                 <td>{{ cert.data_validade|date_br }}</td>
                 <td>{{ dias_para_vencer(cert.data_validade) if cert.data_validade else "-" }}</td>
                 <td class="text-truncate issuer-cell" title="{{ cert.issuer or '' }}">{{ cert.issuer or "-" }}</td>
-                <td class="actions-cell">
-                    <a class="btn btn-sm btn-outline-primary" href="{{ url_for('certificados.detalhe', certificado_id=cert.id) }}">Ver</a>
+                <td class="actions-cell {{ 'actions-muted' if cert.status_registro == 'SUBSTITUIDO' else '' }}">
+                    <a class="btn btn-sm {{ 'btn-outline-secondary' if cert.status_registro == 'SUBSTITUIDO' else 'btn-outline-primary' }}" href="{{ url_for('certificados.detalhe', certificado_id=cert.id) }}">Ver detalhes</a>
                     <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('certificados.download', certificado_id=cert.id) }}">Baixar</a>
                     <button class="btn btn-sm btn-outline-secondary" data-copy-password data-cert-id="{{ cert.id }}">Copiar senha</button>
                     <form class="d-inline" method="post" action="{{ url_for('mensagens.gerar', certificado_id=cert.id) }}">
-                        <button class="btn btn-sm btn-outline-success" type="submit" {% if not cert.data_validade %}disabled{% endif %}>Gerar mensagem</button>
+                        <button class="btn btn-sm {{ 'btn-outline-secondary' if cert.status_registro == 'SUBSTITUIDO' else 'btn-outline-success' }}" type="submit" {% if not cert.data_validade %}disabled{% endif %}>Gerar mensagem</button>
                     </form>
                 </td>
             </tr>

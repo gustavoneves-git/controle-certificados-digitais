@@ -8,13 +8,17 @@
     </div>
 
     <form method="post" enctype="multipart/form-data" class="form-panel" data-phone-form>
-        <div class="mb-3">
+        <div class="upload-zone mb-3">
             <label for="arquivo" class="form-label">Arquivo .pfx</label>
             <input class="form-control" type="file" id="arquivo" name="arquivo" accept=".pfx" required>
+            <div class="form-text">A validade sera lida de dentro do certificado, nunca do nome do arquivo.</div>
         </div>
         <div class="mb-3">
             <label for="senha" class="form-label">Senha do certificado</label>
-            <input class="form-control" type="password" id="senha" name="senha" autocomplete="off" required>
+            <div class="input-group">
+                <input class="form-control" type="password" id="senha" name="senha" autocomplete="off" required data-local-password>
+                <button class="btn btn-outline-secondary" type="button" data-toggle-local-password>Mostrar</button>
+            </div>
         </div>
         <div class="mb-3">
             <label for="nome_contato" class="form-label">Nome do contato/cliente</label>
@@ -23,14 +27,14 @@
         <div class="mb-3">
             <label for="telefone_limpo" class="form-label">Telefone limpo</label>
             <input class="form-control" type="text" id="telefone_limpo" name="telefone_limpo" inputmode="numeric" data-phone-input required>
-            <div class="form-text">{{ instrucao }}</div>
+            <div class="form-text">Digite apenas o numero usado na busca do Messenger. Exemplo: 916031398.</div>
         </div>
         <div class="mb-4">
             <label for="observacao" class="form-label">Observacao</label>
             <textarea class="form-control" id="observacao" name="observacao" rows="3"></textarea>
         </div>
         <div class="d-flex gap-2">
-            <button class="btn btn-primary" type="submit" data-save-button disabled>Salvar</button>
+            <button class="btn btn-primary" type="submit" data-save-button disabled>Salvar certificado</button>
             <a class="btn btn-outline-secondary" href="{{ url_for('certificados.listar') }}">Cancelar</a>
         </div>
     </form>

@@ -7,6 +7,7 @@ from app.services.vencimento_service import (
     VALIDO,
     VENCE_EM_15_DIAS,
     VENCIDO,
+    VERIFICAR,
 )
 
 dashboard_bp = Blueprint("dashboard", __name__)
@@ -19,7 +20,9 @@ def index():
         "vencidos": certificados.count_by_status(VENCIDO),
         "vence_15": certificados.count_by_status(VENCE_EM_15_DIAS),
         "validos": certificados.count_by_status(VALIDO),
-        "senha_invalida": certificados.count_by_status(SENHA_INVALIDA),
+        "verificar": certificados.count_by_registro(VERIFICAR),
+        "senha_invalida": certificados.count_by_status(SENHA_INVALIDA, status_registro=VERIFICAR),
         "sem_telefone": certificados.count_by_status(SEM_TELEFONE),
+        "substituidos": certificados.count_by_registro("SUBSTITUIDO"),
     }
     return render_template("dashboard.html", stats=stats)

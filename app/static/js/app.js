@@ -40,6 +40,15 @@ document.querySelectorAll("[data-show-password]").forEach((button) => {
     });
 });
 
+document.querySelectorAll("[data-toggle-local-password]").forEach((button) => {
+    button.addEventListener("click", () => {
+        const input = document.querySelector("[data-local-password]");
+        const showing = input.type === "text";
+        input.type = showing ? "password" : "text";
+        button.textContent = showing ? "Mostrar" : "Ocultar";
+    });
+});
+
 document.querySelectorAll("[data-copy-password]").forEach((button) => {
     button.addEventListener("click", async () => {
         const data = await buscarSenha(button.dataset.certId);
@@ -54,6 +63,9 @@ document.querySelectorAll("[data-copy-message]").forEach((button) => {
     button.addEventListener("click", async () => {
         const output = document.querySelector("[data-message-output]");
         await navigator.clipboard.writeText(output.value);
+        if (button.dataset.messageId) {
+            await fetch(`/mensagens/${button.dataset.messageId}/copiar`, { method: "POST" });
+        }
         button.textContent = "Mensagem copiada";
         setTimeout(() => (button.textContent = "Copiar mensagem"), 1400);
     });

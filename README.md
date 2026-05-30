@@ -168,6 +168,31 @@ Ao cadastrar um novo `.pfx`, o sistema sempre le o certificado antes de decidir.
 
 Dashboard e lista principal consideram apenas certificados `ATIVO` por padrao. Certificados `SUBSTITUIDO` ficam disponiveis pelo filtro da lista e nao entram como pendencia principal.
 
+## Uso operacional da lista
+
+A tela de certificados abre em `Ativos` por padrao. Use os filtros rapidos para revisar:
+
+- `Ativos`: certificados principais em uso.
+- `Vencidos`: ativos com validade expirada.
+- `Vencem em 15 dias`: ativos que precisam de renovacao imediata.
+- `Validos`: ativos com mais de 15 dias de validade.
+- `Verificar`: registros que precisam de revisao manual.
+- `Sem telefone`: ativos sem telefone limpo valido.
+- `Senha invalida`: registros cujo `.pfx` nao abriu com a senha informada.
+- `Substituidos`: historico de certificados trocados por versoes mais novas.
+- `Todos`: visao completa para conferencia.
+
+A busca aceita CNPJ/CPF, nome extraido, nome do contato e telefone limpo.
+
+## Fluxo recomendado de renovacao
+
+1. Filtre por `Vencem em 15 dias` ou `Vencidos`.
+2. Abra o detalhe e gere a mensagem para contato manual.
+3. Quando receber o novo `.pfx`, cadastre normalmente.
+4. Se o novo certificado tiver o mesmo CNPJ/CPF e validade maior, ele fica `ATIVO` e o antigo vira `SUBSTITUIDO`.
+5. Se a validade for menor ou igual ao certificado ativo, o sistema bloqueia a substituicao automatica.
+6. Use o filtro `Substituidos` apenas para historico e conferencia.
+
 ## Seguranca
 
 - A senha do certificado nunca e salva em texto puro.

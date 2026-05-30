@@ -36,12 +36,31 @@ def create_certificado(data):
     return cursor.lastrowid
 
 
-def list_certificados(status_registro="ATIVO"):
+def list_certificados(status_registro="ATIVO", status_vencimento=None, busca=None):
     query = "SELECT * FROM certificados"
     params = []
+    where = []
     if status_registro:
-        query += " WHERE status_registro = ?"
+        where.append("status_registro = ?")
         params.append(status_registro)
+    if status_vencimento:
+        where.append("status_vencimento = ?")
+        params.append(status_vencimento)
+    if busca:
+        termo = f"%{busca.strip()}%"
+        where.append(
+            """
+            (
+                cnpj_cpf LIKE ?
+                OR nome_extraido LIKE ?
+                OR nome_contato LIKE ?
+                OR telefone_limpo LIKE ?
+            )
+            """
+        )
+        params.extend([termo, termo, termo, termo])
+    if where:
+        query += " WHERE " + " AND ".join(where)
     query += " ORDER BY data_validade IS NULL, data_validade ASC, id DESC"
     return get_db().execute(query, params).fetchall()
 
@@ -94,6 +113,14 @@ def count_by_status(status, status_registro="ATIVO"):
 
 
 def count_all(status_registro="ATIVO"):
+    row = get_db().execute(
+        "SELECT COUNT(*) AS total FROM certificados WHERE status_registro = ?",
+        (status_registro,),
+    ).fetchone()
+    return row["total"]
+
+
+def count_by_registro(status_registro):
     row = get_db().execute(
         "SELECT COUNT(*) AS total FROM certificados WHERE status_registro = ?",
         (status_registro,),

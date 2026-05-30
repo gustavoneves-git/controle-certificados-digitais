@@ -35,17 +35,34 @@ certificados_bp = Blueprint("certificados", __name__, url_prefix="/certificados"
 
 @certificados_bp.route("/")
 def listar():
-    filtro = request.args.get("status_registro", "ATIVO")
-    if filtro not in {"ATIVO", "SUBSTITUIDO", "VERIFICAR", "TODOS"}:
+    filtro = request.args.get("filtro") or request.args.get("status_registro", "ATIVO")
+    busca = request.args.get("busca", "").strip()
+    filtros = {
+        "ATIVO": ("ATIVO", None),
+        "VENCIDO": ("ATIVO", "VENCIDO"),
+        "VENCE_EM_15_DIAS": ("ATIVO", "VENCE_EM_15_DIAS"),
+        "VALIDO": ("ATIVO", "VALIDO"),
+        "VERIFICAR": ("VERIFICAR", None),
+        "SEM_TELEFONE": ("ATIVO", "SEM_TELEFONE"),
+        "SENHA_INVALIDA": ("VERIFICAR", "SENHA_INVALIDA"),
+        "SUBSTITUIDO": ("SUBSTITUIDO", None),
+        "TODOS": (None, None),
+    }
+    if filtro not in filtros:
         filtro = "ATIVO"
-    status_registro = None if filtro == "TODOS" else filtro
-    registros = certificados.list_certificados(status_registro=status_registro)
+    status_registro, status_vencimento = filtros[filtro]
+    registros = certificados.list_certificados(
+        status_registro=status_registro,
+        status_vencimento=status_vencimento,
+        busca=busca,
+    )
     return render_template(
         "certificados.html",
         certificados=registros,
         dias_para_vencer=dias_para_vencer,
         status_class=status_class,
         filtro=filtro,
+        busca=busca,
     )
 
 

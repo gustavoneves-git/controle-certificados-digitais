@@ -162,6 +162,8 @@ def test_fluxo_sensivel_registra_auditoria_e_nao_cacheia_senha(tmp_path, monkeyp
     assert client.post(f"/certificados/{certificado_id}/senha/copiar").status_code == 200
     assert client.get(f"/certificados/{certificado_id}/download").status_code == 200
     assert client.post(f"/mensagens/certificado/{certificado_id}/gerar").status_code == 302
+    mensagem = _db_rows(app.config["DATABASE_PATH"], "mensagens")[0]
+    assert client.post(f"/mensagens/{mensagem['id']}/copiar").status_code == 200
 
     eventos = [
         row["tipo_evento"]
@@ -172,6 +174,7 @@ def test_fluxo_sensivel_registra_auditoria_e_nao_cacheia_senha(tmp_path, monkeyp
     assert "SENHA_COPIADA" in eventos
     assert "CERTIFICADO_BAIXADO" in eventos
     assert "MENSAGEM_GERADA" in eventos
+    assert "MENSAGEM_COPIADA" in eventos
 
 
 def test_primeiro_certificado_de_documento_fica_ativo(tmp_path, monkeypatch):
@@ -246,7 +249,7 @@ def test_dashboard_e_lista_padrao_consideram_apenas_ativos(tmp_path, monkeypatch
     dashboard = client.get("/")
     assert dashboard.status_code == 200
     assert b"Vencidos</span>\n            <strong>1</strong>" in dashboard.data
-    assert b"Total</span>\n            <strong>2</strong>" in dashboard.data
+    assert b"Ativos</span>\n            <strong>2</strong>" in dashboard.data
 
     lista = client.get("/certificados/")
     assert lista.status_code == 200
@@ -262,6 +265,49 @@ def test_dashboard_e_lista_padrao_consideram_apenas_ativos(tmp_path, monkeypatch
 
     substituidos = client.get("/certificados/?status_registro=SUBSTITUIDO")
     assert f'/certificados/{substituido["id"]}'.encode() in substituidos.data
+
+
+def test_filtros_rapidos_e_busca_da_lista(tmp_path, monkeypatch):
+    app = _app(tmp_path, monkeypatch)
+    client = app.test_client()
+    base = _gerar_certificados_rota(tmp_path)
+
+    _post_pfx(client, base / "empresa_teste_valido.pfx")
+    _post_pfx(client, base / "empresa_teste_vencido.pfx")
+    _post_pfx(client, base / "empresa_teste_vence_15_dias.pfx")
+
+    vencidos = client.get("/certificados/?filtro=VENCIDO")
+    assert b"EMPRESA TESTE VENCIDA LTDA" in vencidos.data
+    assert b"EMPRESA TESTE LTDA" not in vencidos.data
+
+    busca_cnpj = client.get("/certificados/?filtro=TODOS&busca=33444555000101")
+    assert b"EMPRESA TESTE ATENCAO LTDA" in busca_cnpj.data
+    assert b"EMPRESA TESTE VENCIDA LTDA" not in busca_cnpj.data
+
+    busca_contato = client.get("/certificados/?filtro=TODOS&busca=916031398")
+    assert busca_contato.data.count(b"916031398") >= 3
+
+
+def test_dashboard_tem_cards_operacionais_clicaveis(tmp_path, monkeypatch):
+    app = _app(tmp_path, monkeypatch)
+    client = app.test_client()
+    base = _gerar_certificados_rota(tmp_path)
+
+    _post_pfx(client, base / "empresa_teste_valido.pfx")
+    _post_pfx(client, base / "empresa_teste_vencido.pfx")
+    _post_pfx(client, base / "empresa_substituicao_antigo.pfx")
+    _post_pfx(client, base / "empresa_substituicao_novo.pfx")
+
+    response = client.get("/")
+
+    assert response.status_code == 200
+    assert b"Ativos" in response.data
+    assert b"Verificar" in response.data
+    assert b"Senha invalida" in response.data
+    assert b"Sem telefone" in response.data
+    assert b"Substituidos" in response.data
+    assert b"/certificados/?filtro=VENCIDO" in response.data
+    assert b"/certificados/?filtro=SUBSTITUIDO" in response.data
 
 
 def test_certificado_substituido_vencido_nao_conta_como_pendencia_principal(tmp_path, monkeypatch):
