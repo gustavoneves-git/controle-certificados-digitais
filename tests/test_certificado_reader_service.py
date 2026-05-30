@@ -56,6 +56,11 @@ def test_ler_pfx_trata_senha_invalida():
         ler_pfx(_pfx_bytes(), "errada")
 
 
+def test_ler_pfx_trata_arquivo_invalido():
+    with pytest.raises(SenhaCertificadoInvalida):
+        ler_pfx(b"isto nao e um pfx", "123456")
+
+
 def test_extrair_documento_reconhece_cpf_cnpj_e_desconhecido():
     assert extrair_documento("CPF 123.456.789-01") == ("12345678901", "CPF")
     assert extrair_documento("CNPJ 12.345.678/0001-95") == ("12345678000195", "CNPJ")

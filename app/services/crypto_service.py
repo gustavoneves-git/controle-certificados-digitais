@@ -11,7 +11,10 @@ def _fernet():
     key = os.getenv("CERT_PASSWORD_KEY")
     if not key:
         raise RuntimeError("CERT_PASSWORD_KEY nao configurada no .env")
-    return Fernet(key.encode("utf-8"))
+    try:
+        return Fernet(key.encode("utf-8"))
+    except ValueError as exc:
+        raise RuntimeError("CERT_PASSWORD_KEY invalida. Gere uma chave Fernet valida.") from exc
 
 
 def criptografar_senha(senha):

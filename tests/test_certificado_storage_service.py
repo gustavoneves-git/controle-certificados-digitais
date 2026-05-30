@@ -1,0 +1,33 @@
+from pathlib import Path
+
+from app.services.certificado_storage_service import caminho_permitido, salvar_certificado
+
+
+class FakeUpload:
+    def __init__(self, filename, content=b"conteudo"):
+        self.filename = filename
+        self.content = content
+
+    def save(self, destino):
+        Path(destino).write_bytes(self.content)
+
+
+def test_salvar_certificado_usa_nome_seguro_e_nao_sobrescreve(tmp_path):
+    primeiro = salvar_certificado(FakeUpload("../../cliente teste.pfx"), tmp_path)
+    segundo = salvar_certificado(FakeUpload("../../cliente teste.pfx"), tmp_path)
+
+    assert primeiro != segundo
+    assert Path(primeiro).name.endswith("cliente_teste.pfx")
+    assert ".." not in Path(primeiro).name
+    assert Path(primeiro).read_bytes() == b"conteudo"
+
+
+def test_caminho_permitido_limita_download_ao_storage(tmp_path):
+    permitido = tmp_path / "certificado.pfx"
+    permitido.write_bytes(b"pfx")
+    fora = tmp_path.parent / "fora.pfx"
+    fora.write_bytes(b"pfx")
+
+    assert caminho_permitido(permitido, tmp_path)
+    assert not caminho_permitido(fora, tmp_path)
+    assert not caminho_permitido(tmp_path / "ausente.pfx", tmp_path)

@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 
 
 VALIDO = "VALIDO"
@@ -13,10 +13,15 @@ def parse_date(value):
     if not value:
         return None
     if isinstance(value, datetime):
+        if value.tzinfo is not None:
+            value = value.astimezone(timezone.utc)
         return value.date()
     if isinstance(value, date):
         return value
-    return datetime.fromisoformat(str(value).replace("Z", "+00:00")).date()
+    parsed = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+    if parsed.tzinfo is not None:
+        parsed = parsed.astimezone(timezone.utc)
+    return parsed.date()
 
 
 def dias_para_vencer(data_validade, hoje=None):

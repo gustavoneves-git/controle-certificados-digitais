@@ -1,6 +1,7 @@
 from flask import (
     Blueprint,
     current_app,
+    abort,
     flash,
     jsonify,
     redirect,
@@ -13,7 +14,11 @@ from flask import (
 from app.repositories import auditoria_repository as auditoria
 from app.repositories import certificado_repository as certificados
 from app.services.certificado_reader_service import SenhaCertificadoInvalida, ler_pfx
-from app.services.certificado_storage_service import extensao_valida, salvar_certificado
+from app.services.certificado_storage_service import (
+    caminho_permitido,
+    extensao_valida,
+    salvar_certificado,
+)
 from app.services.crypto_service import criptografar_senha, descriptografar_senha
 from app.services.telefone_service import TELEFONE_INSTRUCAO, is_telefone_limpo_valido
 from app.services.vencimento_service import (
@@ -123,6 +128,10 @@ def download(certificado_id):
     if certificado is None:
         flash("Certificado nao encontrado.", "warning")
         return redirect(url_for("certificados.listar"))
+    if not caminho_permitido(
+        certificado["caminho_arquivo"], current_app.config["STORAGE_CERTIFICADOS"]
+    ):
+        abort(404)
     auditoria.registrar_evento(certificado_id, "CERTIFICADO_BAIXADO", "Arquivo .pfx baixado pelo usuario.")
     return send_file(
         certificado["caminho_arquivo"],
@@ -138,7 +147,9 @@ def mostrar_senha(certificado_id):
         return jsonify({"error": "Certificado nao encontrado"}), 404
     senha = descriptografar_senha(certificado["senha_criptografada"])
     auditoria.registrar_evento(certificado_id, "SENHA_VISUALIZADA", "Senha visualizada pelo usuario.")
-    return jsonify({"senha": senha})
+    response = jsonify({"senha": senha})
+    response.headers["Cache-Control"] = "no-store, max-age=0"
+    return response
 
 
 @certificados_bp.route("/<int:certificado_id>/senha/copiar", methods=["POST"])

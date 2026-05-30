@@ -26,11 +26,17 @@ async function buscarSenha(certId) {
 document.querySelectorAll("[data-show-password]").forEach((button) => {
     button.addEventListener("click", async () => {
         const output = document.querySelector("[data-password-output]");
-        const data = await buscarSenha(button.dataset.certId);
         const showing = output.type === "text";
-        output.type = showing ? "password" : "text";
-        output.value = showing ? "********" : data.senha;
-        button.textContent = showing ? "Mostrar" : "Ocultar";
+        if (showing) {
+            output.type = "password";
+            output.value = "********";
+            button.textContent = "Mostrar";
+            return;
+        }
+        const data = await buscarSenha(button.dataset.certId);
+        output.type = "text";
+        output.value = data.senha;
+        button.textContent = "Ocultar";
     });
 });
 
