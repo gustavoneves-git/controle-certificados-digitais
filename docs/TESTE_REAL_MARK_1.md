@@ -5,10 +5,28 @@ Use este roteiro para validar a Mark 1 com certificados `.pfx` reais em ambiente
 ## Antes de comecar
 
 - [ ] Confirme que `.env`, `data/*.db` e `storage/certificados/*` estao ignorados pelo Git.
+- [ ] Confirme que `tmp/` esta ignorado pelo Git.
 - [ ] Use somente certificados autorizados para teste.
+- [ ] Nao envie certificados reais ao GitHub, Codex ou ChatGPT.
 - [ ] Nao envie certificados reais, banco real ou `.env` para o repositorio.
 - [ ] Rode o sistema localmente com `python run.py`.
 - [ ] Acesse `http://127.0.0.1:5000`.
+
+## Teste seguro com certificados ficticios
+
+Para desenvolvimento e teste sem dados reais, gere certificados `.pfx` ficticios:
+
+```bash
+.venv/bin/python scripts/gerar_certificados_teste.py
+```
+
+- [ ] Confirme que os arquivos foram criados em `tmp/certificados_teste/`.
+- [ ] Use a senha ficticia padrao `teste123`.
+- [ ] Cadastre `empresa_teste_valido.pfx` e confirme status valido.
+- [ ] Cadastre `empresa_teste_vencido.pfx` e confirme status vencido.
+- [ ] Cadastre `empresa_teste_vence_15_dias.pfx` e confirme status de atencao.
+- [ ] Cadastre `empresa_substituicao_antigo.pfx` e `empresa_substituicao_novo.pfx` para observar mesmo CNPJ com validades diferentes.
+- [ ] Confirme que nenhum arquivo `.pfx` aparece no `git status`.
 
 ## Teste com certificado real e senha correta
 

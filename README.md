@@ -79,6 +79,28 @@ Acesse `http://127.0.0.1:5000`.
 
 Na tela "Novo certificado", envie um `.pfx`, informe a senha, o nome do contato, o telefone limpo e uma observacao opcional. A senha e testada contra o arquivo; se estiver incorreta, o cadastro fica com status `SENHA_INVALIDA` e um evento de auditoria e registrado.
 
+## Certificados ficticios para desenvolvimento
+
+Nunca envie certificados reais ao GitHub, Codex ou ChatGPT. Certificados reais tambem nao devem ser usados em testes versionados.
+
+Para desenvolvimento, gere certificados `.pfx` ficticios e autossinados:
+
+```bash
+.venv/bin/python scripts/gerar_certificados_teste.py
+```
+
+Os arquivos sao criados em `tmp/certificados_teste/`, pasta ignorada pelo Git. A senha ficticia padrao e `teste123`.
+
+Arquivos gerados:
+
+- `empresa_teste_valido.pfx`
+- `empresa_teste_vencido.pfx`
+- `empresa_teste_vence_15_dias.pfx`
+- `empresa_substituicao_antigo.pfx`
+- `empresa_substituicao_novo.pfx`
+
+Todos usam nomes e CNPJs ficticios, apenas para validar leitura, status, extracao de documento e cenarios de substituicao futura.
+
 ## Como testar com certificado real
 
 1. Inicie o servidor local.
@@ -131,6 +153,7 @@ A validade usada pelo sistema vem exclusivamente da leitura interna do arquivo `
 - `CERT_PASSWORD_KEY` deve ser uma chave Fernet valida e deve ficar somente no `.env`.
 - A pasta `storage/certificados` e ignorada pelo Git.
 - O banco `data/*.db` e ignorado pelo Git.
+- A pasta `tmp/` e ignorada pelo Git.
 - Arquivos `.pfx` nao devem ser enviados ao repositorio.
 - Visualizar/copiar senha e baixar certificado registra auditoria.
 - A resposta que mostra senha usa `Cache-Control: no-store`.
