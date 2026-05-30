@@ -15,11 +15,11 @@
             ('ATIVO', 'Ativos'),
             ('VENCIDO', 'Vencidos'),
             ('VENCE_EM_15_DIAS', 'Vencem em 15 dias'),
-            ('VALIDO', 'Validos'),
+            ('VALIDO', 'Válidos'),
             ('VERIFICAR', 'Verificar'),
             ('SEM_TELEFONE', 'Sem telefone'),
-            ('SENHA_INVALIDA', 'Senha invalida'),
-            ('SUBSTITUIDO', 'Substituidos'),
+            ('SENHA_INVALIDA', 'Senha inválida'),
+            ('SUBSTITUIDO', 'Substituídos'),
             ('TODOS', 'Todos')
         ] %}
             <a class="btn btn-sm {{ 'btn-primary' if filtro == key else 'btn-outline-primary' }}" href="{{ url_for('certificados.listar', filtro=key, busca=busca) }}">{{ label }}</a>
@@ -41,7 +41,7 @@
         <tr>
             <th>Status</th>
             <th>Registro</th>
-            <th>Nome extraido</th>
+            <th>Nome extraído</th>
             <th>CNPJ/CPF</th>
             <th>Tipo</th>
             <th>Contato</th>
@@ -49,7 +49,7 @@
             <th>Validade</th>
             <th>Dias</th>
             <th>Emissor</th>
-            <th>Acoes</th>
+            <th>Ações</th>
         </tr>
         </thead>
         <tbody>
@@ -66,12 +66,17 @@
                 <td>{{ dias_para_vencer(cert.data_validade) if cert.data_validade else "-" }}</td>
                 <td class="text-truncate issuer-cell" title="{{ cert.issuer or '' }}">{{ cert.issuer or "-" }}</td>
                 <td class="actions-cell {{ 'actions-muted' if cert.status_registro == 'SUBSTITUIDO' else '' }}">
-                    <a class="btn btn-sm {{ 'btn-outline-secondary' if cert.status_registro == 'SUBSTITUIDO' else 'btn-outline-primary' }}" href="{{ url_for('certificados.detalhe', certificado_id=cert.id) }}">Ver detalhes</a>
-                    <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('certificados.download', certificado_id=cert.id) }}">Baixar</a>
-                    <button class="btn btn-sm btn-outline-secondary" data-copy-password data-cert-id="{{ cert.id }}">Copiar senha</button>
-                    <form class="d-inline" method="post" action="{{ url_for('mensagens.gerar', certificado_id=cert.id) }}">
-                        <button class="btn btn-sm {{ 'btn-outline-secondary' if cert.status_registro == 'SUBSTITUIDO' else 'btn-outline-success' }}" type="submit" {% if not cert.data_validade %}disabled{% endif %}>Gerar mensagem</button>
-                    </form>
+                    <div class="action-group">
+                        <a class="btn btn-sm {{ 'btn-outline-secondary' if cert.status_registro == 'SUBSTITUIDO' else 'btn-outline-primary' }}" href="{{ url_for('certificados.detalhe', certificado_id=cert.id) }}">Ver detalhes</a>
+                        <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('certificados.download', certificado_id=cert.id) }}">Baixar</a>
+                        <button class="btn btn-sm btn-outline-secondary" data-copy-password data-cert-id="{{ cert.id }}">Copiar senha</button>
+                        <form method="post" action="{{ url_for('mensagens.gerar', certificado_id=cert.id) }}">
+                            <button class="btn btn-sm {{ 'btn-outline-secondary' if cert.status_registro == 'SUBSTITUIDO' else 'btn-outline-success' }}" type="submit" {% if not cert.data_validade %}disabled{% endif %}>Gerar mensagem</button>
+                        </form>
+                        <form method="post" action="{{ url_for('certificados.excluir', certificado_id=cert.id) }}" onsubmit="return confirm('Excluir este certificado e remover o arquivo .pfx vinculado? Esta ação não pode ser desfeita.');">
+                            <button class="btn btn-sm btn-outline-danger" type="submit">Excluir</button>
+                        </form>
+                    </div>
                 </td>
             </tr>
         {% else %}

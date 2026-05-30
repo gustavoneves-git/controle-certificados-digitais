@@ -262,6 +262,37 @@ def excluir_arquivo_arquivado(certificado_id):
     return redirect(url_for("certificados.detalhe", certificado_id=certificado_id))
 
 
+@certificados_bp.route("/<int:certificado_id>/excluir", methods=["POST"])
+def excluir(certificado_id):
+    certificado = certificados.get_certificado(certificado_id)
+    if certificado is None:
+        flash("Certificado nao encontrado.", "warning")
+        return redirect(url_for("certificados.listar"))
+
+    removido = False
+    if caminho_permitido(certificado["caminho_arquivo"], current_app.config["STORAGE_CERTIFICADOS"]):
+        removido = remover_certificado(
+            certificado["caminho_arquivo"],
+            current_app.config["STORAGE_CERTIFICADOS"],
+        )
+    elif caminho_permitido(certificado["caminho_arquivo"], current_app.config["STORAGE_CERTIFICADOS_ARQUIVADOS"]):
+        removido = remover_certificado(
+            certificado["caminho_arquivo"],
+            current_app.config["STORAGE_CERTIFICADOS_ARQUIVADOS"],
+        )
+
+    auditoria.registrar_evento(
+        certificado_id,
+        "CERTIFICADO_EXCLUIDO",
+        "Certificado excluido manualmente. Arquivo .pfx removido."
+        if removido
+        else "Certificado excluido manualmente. Arquivo .pfx nao localizado.",
+    )
+    certificados.delete_certificado(certificado_id)
+    flash("Certificado excluido com sucesso.", "success")
+    return redirect(url_for("certificados.listar", filtro="TODOS"))
+
+
 @certificados_bp.route("/<int:certificado_id>/senha", methods=["POST"])
 def mostrar_senha(certificado_id):
     certificado = certificados.get_certificado(certificado_id)

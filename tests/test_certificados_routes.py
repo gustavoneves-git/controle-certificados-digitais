@@ -279,6 +279,24 @@ def test_exclusao_manual_remove_apenas_arquivo_arquivado_de_substituido(tmp_path
     assert "CERTIFICADO_ARQUIVO_REMOVIDO" in eventos
 
 
+def test_excluir_certificado_remove_registro_e_arquivo(tmp_path, monkeypatch):
+    app = _app(tmp_path, monkeypatch)
+    client = app.test_client()
+    base = _gerar_certificados_rota(tmp_path)
+
+    _post_pfx(client, base / "empresa_teste_valido.pfx")
+    certificado = _db_rows(app.config["DATABASE_PATH"], "certificados")[0]
+    caminho = Path(certificado["caminho_arquivo"])
+    assert caminho.exists()
+
+    response = client.post(f"/certificados/{certificado['id']}/excluir", follow_redirects=True)
+
+    assert response.status_code == 200
+    assert b"Certificado excluido com sucesso" in response.data
+    assert not caminho.exists()
+    assert _db_rows(app.config["DATABASE_PATH"], "certificados") == []
+
+
 def test_bloqueia_substituicao_com_validade_menor_ou_igual(tmp_path, monkeypatch):
     app = _app(tmp_path, monkeypatch)
     client = app.test_client()

@@ -120,6 +120,14 @@ def registrar_arquivo_removido(certificado_id):
     db.commit()
 
 
+def delete_certificado(certificado_id):
+    db = get_db()
+    db.execute("DELETE FROM mensagens WHERE certificado_id = ?", (certificado_id,))
+    db.execute("DELETE FROM eventos_auditoria WHERE certificado_id = ?", (certificado_id,))
+    db.execute("DELETE FROM certificados WHERE id = ?", (certificado_id,))
+    db.commit()
+
+
 def count_by_status(status, status_registro="ATIVO"):
     row = get_db().execute(
         """

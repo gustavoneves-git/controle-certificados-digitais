@@ -104,11 +104,27 @@ body {
 }
 
 .actions-cell {
-    min-width: 360px;
+    min-width: 310px;
 }
 
 .actions-muted .btn {
     opacity: 0.82;
+}
+
+.action-group {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    max-width: 330px;
+}
+
+.action-group form {
+    margin: 0;
+}
+
+.action-group .btn {
+    min-width: 74px;
 }
 
 .detail-grid {
