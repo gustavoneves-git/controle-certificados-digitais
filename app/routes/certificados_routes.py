@@ -17,6 +17,7 @@ from app.services.certificado_reader_service import SenhaCertificadoInvalida, le
 from app.services.certificado_storage_service import (
     caminho_permitido,
     extensao_valida,
+    remover_certificado,
     salvar_certificado,
 )
 from app.services.crypto_service import criptografar_senha, descriptografar_senha
@@ -163,10 +164,21 @@ def novo():
 
     if certificado_ativo_existente and certificado_ativo_existente["id"] != certificado_id:
         certificados.marcar_substituido(certificado_ativo_existente["id"], certificado_id)
+        arquivo_antigo_removido = remover_certificado(
+            certificado_ativo_existente["caminho_arquivo"],
+            current_app.config["STORAGE_CERTIFICADOS"],
+        )
         auditoria.registrar_evento(
             certificado_ativo_existente["id"],
             "CERTIFICADO_SUBSTITUIDO",
             f"Certificado substituido pelo cadastro #{certificado_id}.",
+        )
+        auditoria.registrar_evento(
+            certificado_ativo_existente["id"],
+            "ARQUIVO_CERTIFICADO_REMOVIDO" if arquivo_antigo_removido else "ARQUIVO_CERTIFICADO_NAO_ENCONTRADO",
+            "Arquivo .pfx antigo removido automaticamente apos substituicao."
+            if arquivo_antigo_removido
+            else "Arquivo .pfx antigo nao foi encontrado para remocao automatica.",
         )
         auditoria.registrar_evento(
             certificado_id,

@@ -1,6 +1,7 @@
 body {
     background: #f6f7f9;
     color: #1f2933;
+    min-height: 100vh;
 }
 
 .container-fluid {
@@ -9,6 +10,11 @@ body {
 
 .content-narrow {
     max-width: 820px;
+}
+
+.brand-logo {
+    height: 28px;
+    width: auto;
 }
 
 .metric,
@@ -168,6 +174,50 @@ body {
 
 .message-box {
     white-space: pre-wrap;
+}
+
+.app-footer {
+    align-items: center;
+    background: #fff;
+    border-top: 1px solid #d9dee5;
+    color: #46576b;
+    display: flex;
+    gap: 18px;
+    justify-content: center;
+    margin-top: 24px;
+    padding: 28px 16px;
+}
+
+.app-footer img {
+    height: 34px;
+    width: auto;
+}
+
+.login-body {
+    align-items: center;
+    background: linear-gradient(180deg, #f7fafc 0%, #edf4f8 100%);
+    display: flex;
+    justify-content: center;
+    min-height: 100vh;
+}
+
+.login-wrap {
+    width: min(390px, calc(100% - 32px));
+}
+
+.login-card {
+    background: #fff;
+    border: 1px solid #d9dee5;
+    border-radius: 8px;
+    box-shadow: 0 18px 40px rgba(31, 41, 51, 0.12);
+    padding: 30px;
+}
+
+.login-logo {
+    display: block;
+    margin: 0 auto 24px;
+    max-width: 250px;
+    width: 80%;
 }
 
 @media (max-width: 640px) {

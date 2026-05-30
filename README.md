@@ -78,6 +78,13 @@ python run.py
 
 Acesse `http://127.0.0.1:5000`.
 
+Login padrao da Mark 1:
+
+- Usuario: `legal`
+- Senha: `consiste`
+
+Esses valores podem ser alterados no `.env` com `LOGIN_USUARIO` e `LOGIN_SENHA`.
+
 ## Cadastro de certificado
 
 Na tela "Novo certificado", envie um `.pfx`, informe a senha, o nome do contato, o telefone limpo e uma observacao opcional. A senha e testada contra o arquivo; se estiver incorreta, o cadastro fica com status `SENHA_INVALIDA` e um evento de auditoria e registrado.
@@ -165,6 +172,8 @@ Ao cadastrar um novo `.pfx`, o sistema sempre le o certificado antes de decidir.
 - validade nova maior: o certificado antigo vira `SUBSTITUIDO` e o novo fica `ATIVO`;
 - validade nova menor ou igual: o cadastro e bloqueado e nada novo fica ativo;
 - documento nao identificado: o certificado fica `VERIFICAR` e nao participa da substituicao automatica.
+
+Quando um certificado e substituido, o arquivo `.pfx` antigo e removido automaticamente do storage para evitar uso operacional do certificado vencido/antigo. O registro antigo permanece no banco como historico, com auditoria.
 
 Dashboard e lista principal consideram apenas certificados `ATIVO` por padrao. Certificados `SUBSTITUIDO` ficam disponiveis pelo filtro da lista e nao entram como pendencia principal.
 

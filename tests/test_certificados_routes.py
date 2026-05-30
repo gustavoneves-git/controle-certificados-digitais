@@ -228,6 +228,9 @@ def test_certificado_mais_novo_substitui_ativo_do_mesmo_documento(tmp_path, monk
     base = _gerar_certificados_rota(tmp_path)
 
     _post_pfx(client, base / "empresa_substituicao_antigo.pfx")
+    certificado_antigo = _db_rows(app.config["DATABASE_PATH"], "certificados")[0]
+    caminho_antigo = certificado_antigo["caminho_arquivo"]
+    assert (tmp_path / caminho_antigo).exists()
     _post_pfx(client, base / "empresa_substituicao_novo.pfx")
 
     certificados = _db_rows(app.config["DATABASE_PATH"], "certificados")
@@ -235,12 +238,14 @@ def test_certificado_mais_novo_substitui_ativo_do_mesmo_documento(tmp_path, monk
     assert antigo["status_registro"] == "SUBSTITUIDO"
     assert antigo["substituido_por_id"] == novo["id"]
     assert novo["status_registro"] == "ATIVO"
+    assert not (tmp_path / caminho_antigo).exists()
 
     eventos = [
         row["tipo_evento"]
         for row in _db_rows(app.config["DATABASE_PATH"], "eventos_auditoria")
     ]
     assert eventos.count("CERTIFICADO_SUBSTITUIDO") == 2
+    assert "ARQUIVO_CERTIFICADO_REMOVIDO" in eventos
 
 
 def test_bloqueia_substituicao_com_validade_menor_ou_igual(tmp_path, monkeypatch):

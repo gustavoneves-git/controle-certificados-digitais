@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from app.services.certificado_storage_service import caminho_permitido, salvar_certificado
+from app.services.certificado_storage_service import caminho_permitido, remover_certificado, salvar_certificado
 
 
 class FakeUpload:
@@ -31,3 +31,15 @@ def test_caminho_permitido_limita_download_ao_storage(tmp_path):
     assert caminho_permitido(permitido, tmp_path)
     assert not caminho_permitido(fora, tmp_path)
     assert not caminho_permitido(tmp_path / "ausente.pfx", tmp_path)
+
+
+def test_remover_certificado_apaga_apenas_arquivo_permitido(tmp_path):
+    permitido = tmp_path / "certificado.pfx"
+    permitido.write_bytes(b"pfx")
+    fora = tmp_path.parent / "fora-remocao.pfx"
+    fora.write_bytes(b"pfx")
+
+    assert remover_certificado(permitido, tmp_path)
+    assert not permitido.exists()
+    assert not remover_certificado(fora, tmp_path)
+    assert fora.exists()

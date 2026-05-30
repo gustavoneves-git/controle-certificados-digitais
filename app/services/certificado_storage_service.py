@@ -26,3 +26,10 @@ def caminho_permitido(caminho_arquivo, storage_dir):
     except ValueError:
         return False
     return caminho.is_file()
+
+
+def remover_certificado(caminho_arquivo, storage_dir):
+    if not caminho_permitido(caminho_arquivo, storage_dir):
+        return False
+    Path(caminho_arquivo).resolve().unlink()
+    return True
