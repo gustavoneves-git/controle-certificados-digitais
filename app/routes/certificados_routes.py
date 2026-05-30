@@ -1,7 +1,6 @@
 from flask import (
     Blueprint,
     current_app,
-    abort,
     flash,
     jsonify,
     redirect,
@@ -10,6 +9,7 @@ from flask import (
     send_file,
     url_for,
 )
+from pathlib import Path
 
 from app.repositories import auditoria_repository as auditoria
 from app.repositories import certificado_repository as certificados
@@ -204,10 +204,11 @@ def download(certificado_id):
     if not caminho_permitido(
         certificado["caminho_arquivo"], current_app.config["STORAGE_CERTIFICADOS"]
     ):
-        abort(404)
+        flash("Arquivo .pfx nao encontrado no storage. Verifique se o certificado ainda existe na pasta configurada.", "warning")
+        return redirect(url_for("certificados.detalhe", certificado_id=certificado_id))
     auditoria.registrar_evento(certificado_id, "CERTIFICADO_BAIXADO", "Arquivo .pfx baixado pelo usuario.")
     return send_file(
-        certificado["caminho_arquivo"],
+        Path(certificado["caminho_arquivo"]).resolve(),
         as_attachment=True,
         download_name=certificado["nome_arquivo_original"],
     )

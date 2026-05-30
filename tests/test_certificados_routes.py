@@ -177,6 +177,37 @@ def test_fluxo_sensivel_registra_auditoria_e_nao_cacheia_senha(tmp_path, monkeyp
     assert "MENSAGEM_COPIADA" in eventos
 
 
+def test_download_funciona_com_caminho_relativo_de_storage(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("CERT_PASSWORD_KEY", gerar_chave())
+    app = create_app(
+        {
+            "TESTING": True,
+            "DATABASE_PATH": "data/app.db",
+            "STORAGE_CERTIFICADOS": "storage/certificados",
+        }
+    )
+    client = app.test_client()
+
+    client.post(
+        "/certificados/novo",
+        data={
+            "arquivo": (io.BytesIO(_pfx_bytes()), "cliente.pfx"),
+            "senha": "123456",
+            "nome_contato": "Maria",
+            "telefone_limpo": "916031398",
+            "observacao": "",
+        },
+        content_type="multipart/form-data",
+    )
+    certificado = _db_rows("data/app.db", "certificados")[0]
+
+    response = client.get(f"/certificados/{certificado['id']}/download")
+
+    assert response.status_code == 200
+    assert response.headers["Content-Disposition"].startswith("attachment;")
+
+
 def test_primeiro_certificado_de_documento_fica_ativo(tmp_path, monkeypatch):
     app = _app(tmp_path, monkeypatch)
     client = app.test_client()
