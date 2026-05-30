@@ -23,8 +23,10 @@ from app.services.crypto_service import criptografar_senha, descriptografar_senh
 from app.services.telefone_service import TELEFONE_INSTRUCAO, is_telefone_limpo_valido
 from app.services.vencimento_service import (
     SENHA_INVALIDA,
+    VERIFICAR,
     calcular_status,
     dias_para_vencer,
+    parse_date,
     status_class,
 )
 
@@ -33,12 +35,17 @@ certificados_bp = Blueprint("certificados", __name__, url_prefix="/certificados"
 
 @certificados_bp.route("/")
 def listar():
-    registros = certificados.list_certificados()
+    filtro = request.args.get("status_registro", "ATIVO")
+    if filtro not in {"ATIVO", "SUBSTITUIDO", "VERIFICAR", "TODOS"}:
+        filtro = "ATIVO"
+    status_registro = None if filtro == "TODOS" else filtro
+    registros = certificados.list_certificados(status_registro=status_registro)
     return render_template(
         "certificados.html",
         certificados=registros,
         dias_para_vencer=dias_para_vencer,
         status_class=status_class,
+        filtro=filtro,
     )
 
 
@@ -60,16 +67,37 @@ def novo():
     telefone_valido = is_telefone_limpo_valido(telefone_limpo)
     conteudo = arquivo.read()
     arquivo.seek(0)
-    caminho = salvar_certificado(arquivo, current_app.config["STORAGE_CERTIFICADOS"])
     senha_criptografada = criptografar_senha(senha)
+    status_registro = "ATIVO"
+    substituido_por_id = None
+    substituido_em = None
+    certificado_ativo_existente = None
 
     try:
         dados_certificado = ler_pfx(conteudo, senha)
-        status = calcular_status(
+        status_vencimento = calcular_status(
             dados_certificado.get("data_validade"),
             telefone_valido=telefone_valido,
             essencial_ok=bool(dados_certificado.get("subject")),
         )
+        if not dados_certificado.get("cnpj_cpf"):
+            status_registro = "VERIFICAR"
+            status_vencimento = VERIFICAR
+        certificado_ativo_existente = certificados.get_ativo_by_documento(dados_certificado.get("cnpj_cpf"))
+        if certificado_ativo_existente:
+            validade_nova = parse_date(dados_certificado.get("data_validade"))
+            validade_atual = parse_date(certificado_ativo_existente["data_validade"])
+            if validade_nova is None or validade_atual is None or validade_nova <= validade_atual:
+                auditoria.registrar_evento(
+                    certificado_ativo_existente["id"],
+                    "TENTATIVA_SUBSTITUICAO_BLOQUEADA",
+                    "Cadastro bloqueado porque ja existe certificado ativo com validade igual ou superior.",
+                )
+                flash(
+                    "Ja existe um certificado ativo para este CNPJ/CPF com validade igual ou superior.",
+                    "warning",
+                )
+                return redirect(url_for("certificados.detalhe", certificado_id=certificado_ativo_existente["id"]))
     except SenhaCertificadoInvalida:
         dados_certificado = {
             "subject": None,
@@ -83,10 +111,12 @@ def novo():
             "tipo_documento": "DESCONHECIDO",
             "nome_extraido": None,
         }
-        status = SENHA_INVALIDA
+        status_registro = "VERIFICAR"
+        status_vencimento = SENHA_INVALIDA
         flash("Nao foi possivel abrir o certificado. Verifique se a senha esta correta.", "danger")
         flash("O arquivo enviado nao parece ser um certificado .pfx valido.", "warning")
 
+    caminho = salvar_certificado(arquivo, current_app.config["STORAGE_CERTIFICADOS"])
     certificado_id = certificados.create_certificado(
         {
             "nome_arquivo_original": arquivo.filename,
@@ -95,16 +125,39 @@ def novo():
             "nome_contato": nome_contato,
             "telefone_limpo": telefone_limpo,
             "observacao": observacao,
-            "status": status,
+            "status": status_vencimento,
+            "status_registro": status_registro,
+            "status_vencimento": status_vencimento,
+            "substituido_por_id": substituido_por_id,
+            "substituido_em": substituido_em,
             **dados_certificado,
         }
     )
 
     auditoria.registrar_evento(certificado_id, "CERTIFICADO_CADASTRADO", "Certificado cadastrado manualmente.")
-    if status == SENHA_INVALIDA:
+    if status_vencimento == SENHA_INVALIDA:
         auditoria.registrar_evento(certificado_id, "SENHA_INVALIDA", "Senha invalida ao abrir o arquivo .pfx.")
+    if status_registro == "VERIFICAR" and not dados_certificado.get("cnpj_cpf") and status_vencimento != SENHA_INVALIDA:
+        auditoria.registrar_evento(
+            certificado_id,
+            "DOCUMENTO_NAO_IDENTIFICADO",
+            "Nao foi possivel extrair CNPJ/CPF do certificado.",
+        )
 
-    if status != SENHA_INVALIDA:
+    if certificado_ativo_existente and certificado_ativo_existente["id"] != certificado_id:
+        certificados.marcar_substituido(certificado_ativo_existente["id"], certificado_id)
+        auditoria.registrar_evento(
+            certificado_ativo_existente["id"],
+            "CERTIFICADO_SUBSTITUIDO",
+            f"Certificado substituido pelo cadastro #{certificado_id}.",
+        )
+        auditoria.registrar_evento(
+            certificado_id,
+            "CERTIFICADO_SUBSTITUIDO",
+            f"Este certificado substituiu o cadastro #{certificado_ativo_existente['id']}.",
+        )
+
+    if status_vencimento != SENHA_INVALIDA:
         flash("Certificado cadastrado.", "success")
     return redirect(url_for("certificados.detalhe", certificado_id=certificado_id))
 

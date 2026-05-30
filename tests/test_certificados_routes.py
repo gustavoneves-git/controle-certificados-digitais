@@ -10,6 +10,7 @@ from cryptography.x509.oid import NameOID
 
 from app import create_app
 from app.services.crypto_service import gerar_chave
+from scripts.gerar_certificados_teste import SENHA_TESTE, gerar_certificados, gerar_pfx_ficticio
 
 
 def _pfx_bytes(password=b"123456"):
@@ -57,6 +58,27 @@ def _db_rows(database_path, table):
         return conn.execute(f"SELECT * FROM {table} ORDER BY id").fetchall()
     finally:
         conn.close()
+
+
+def _post_pfx(client, arquivo_path, filename=None, senha=SENHA_TESTE, follow_redirects=False):
+    return client.post(
+        "/certificados/novo",
+        data={
+            "arquivo": (io.BytesIO(arquivo_path.read_bytes()), filename or arquivo_path.name),
+            "senha": senha,
+            "nome_contato": "Maria",
+            "telefone_limpo": "916031398",
+            "observacao": "",
+        },
+        content_type="multipart/form-data",
+        follow_redirects=follow_redirects,
+    )
+
+
+def _gerar_certificados_rota(tmp_path):
+    base = tmp_path / "pfx"
+    gerar_certificados(output_dir=base, agora=datetime(2026, 5, 30, 12, 0, tzinfo=timezone.utc))
+    return base
 
 
 def test_upload_invalido_nao_usa_nome_do_arquivo_como_validade(tmp_path, monkeypatch):
@@ -150,3 +172,160 @@ def test_fluxo_sensivel_registra_auditoria_e_nao_cacheia_senha(tmp_path, monkeyp
     assert "SENHA_COPIADA" in eventos
     assert "CERTIFICADO_BAIXADO" in eventos
     assert "MENSAGEM_GERADA" in eventos
+
+
+def test_primeiro_certificado_de_documento_fica_ativo(tmp_path, monkeypatch):
+    app = _app(tmp_path, monkeypatch)
+    client = app.test_client()
+    base = _gerar_certificados_rota(tmp_path)
+
+    response = _post_pfx(client, base / "empresa_substituicao_antigo.pfx")
+
+    assert response.status_code == 302
+    certificado = _db_rows(app.config["DATABASE_PATH"], "certificados")[0]
+    assert certificado["cnpj_cpf"] == "44555666000111"
+    assert certificado["status_registro"] == "ATIVO"
+    assert certificado["status_vencimento"] == "VALIDO"
+
+
+def test_certificado_mais_novo_substitui_ativo_do_mesmo_documento(tmp_path, monkeypatch):
+    app = _app(tmp_path, monkeypatch)
+    client = app.test_client()
+    base = _gerar_certificados_rota(tmp_path)
+
+    _post_pfx(client, base / "empresa_substituicao_antigo.pfx")
+    _post_pfx(client, base / "empresa_substituicao_novo.pfx")
+
+    certificados = _db_rows(app.config["DATABASE_PATH"], "certificados")
+    antigo, novo = certificados
+    assert antigo["status_registro"] == "SUBSTITUIDO"
+    assert antigo["substituido_por_id"] == novo["id"]
+    assert novo["status_registro"] == "ATIVO"
+
+    eventos = [
+        row["tipo_evento"]
+        for row in _db_rows(app.config["DATABASE_PATH"], "eventos_auditoria")
+    ]
+    assert eventos.count("CERTIFICADO_SUBSTITUIDO") == 2
+
+
+def test_bloqueia_substituicao_com_validade_menor_ou_igual(tmp_path, monkeypatch):
+    app = _app(tmp_path, monkeypatch)
+    client = app.test_client()
+    base = _gerar_certificados_rota(tmp_path)
+
+    _post_pfx(client, base / "empresa_substituicao_novo.pfx")
+    response = _post_pfx(
+        client,
+        base / "empresa_substituicao_antigo.pfx",
+        follow_redirects=True,
+    )
+
+    assert response.status_code == 200
+    assert b"Ja existe um certificado ativo para este CNPJ/CPF com validade igual ou superior" in response.data
+    certificados = _db_rows(app.config["DATABASE_PATH"], "certificados")
+    assert len(certificados) == 1
+    assert certificados[0]["status_registro"] == "ATIVO"
+
+    eventos = [
+        row["tipo_evento"]
+        for row in _db_rows(app.config["DATABASE_PATH"], "eventos_auditoria")
+    ]
+    assert "TENTATIVA_SUBSTITUICAO_BLOQUEADA" in eventos
+
+
+def test_dashboard_e_lista_padrao_consideram_apenas_ativos(tmp_path, monkeypatch):
+    app = _app(tmp_path, monkeypatch)
+    client = app.test_client()
+    base = _gerar_certificados_rota(tmp_path)
+
+    _post_pfx(client, base / "empresa_teste_vencido.pfx")
+    _post_pfx(client, base / "empresa_substituicao_antigo.pfx")
+    _post_pfx(client, base / "empresa_substituicao_novo.pfx")
+
+    dashboard = client.get("/")
+    assert dashboard.status_code == 200
+    assert b"Vencidos</span>\n            <strong>1</strong>" in dashboard.data
+    assert b"Total</span>\n            <strong>2</strong>" in dashboard.data
+
+    lista = client.get("/certificados/")
+    assert lista.status_code == 200
+    certificados = _db_rows(app.config["DATABASE_PATH"], "certificados")
+    substituido = [row for row in certificados if row["status_registro"] == "SUBSTITUIDO"][0]
+    ativo_substituto = [
+        row
+        for row in certificados
+        if row["cnpj_cpf"] == "44555666000111" and row["status_registro"] == "ATIVO"
+    ][0]
+    assert f'/certificados/{substituido["id"]}'.encode() not in lista.data
+    assert f'/certificados/{ativo_substituto["id"]}'.encode() in lista.data
+
+    substituidos = client.get("/certificados/?status_registro=SUBSTITUIDO")
+    assert f'/certificados/{substituido["id"]}'.encode() in substituidos.data
+
+
+def test_certificado_substituido_vencido_nao_conta_como_pendencia_principal(tmp_path, monkeypatch):
+    app = _app(tmp_path, monkeypatch)
+    client = app.test_client()
+    antigo = tmp_path / "antigo_vencido.pfx"
+    novo = tmp_path / "novo_valido.pfx"
+    antigo.write_bytes(
+        gerar_pfx_ficticio(
+            "EMPRESA VENCIDA SUBSTITUIDA LTDA",
+            "55666777000121",
+            datetime(2025, 1, 1, tzinfo=timezone.utc),
+            datetime(2025, 2, 1, tzinfo=timezone.utc),
+        )
+    )
+    novo.write_bytes(
+        gerar_pfx_ficticio(
+            "EMPRESA VENCIDA SUBSTITUIDA LTDA",
+            "55666777000121",
+            datetime(2026, 1, 1, tzinfo=timezone.utc),
+            datetime(2027, 1, 1, tzinfo=timezone.utc),
+        )
+    )
+
+    _post_pfx(client, antigo)
+    _post_pfx(client, novo)
+
+    dashboard = client.get("/")
+    assert b"Vencidos</span>\n            <strong>0</strong>" in dashboard.data
+    certificados = _db_rows(app.config["DATABASE_PATH"], "certificados")
+    assert certificados[0]["status_registro"] == "SUBSTITUIDO"
+    assert certificados[0]["status_vencimento"] == "VENCIDO"
+
+
+def test_certificado_sem_documento_nao_aplica_substituicao_automatica(tmp_path, monkeypatch):
+    app = _app(tmp_path, monkeypatch)
+    client = app.test_client()
+    primeiro = tmp_path / "sem_doc_1.pfx"
+    segundo = tmp_path / "sem_doc_2.pfx"
+    primeiro.write_bytes(
+        gerar_pfx_ficticio(
+            "EMPRESA SEM DOCUMENTO LTDA",
+            "",
+            datetime(2026, 1, 1, tzinfo=timezone.utc),
+            datetime(2026, 12, 31, tzinfo=timezone.utc),
+        )
+    )
+    segundo.write_bytes(
+        gerar_pfx_ficticio(
+            "EMPRESA SEM DOCUMENTO LTDA",
+            "",
+            datetime(2026, 1, 1, tzinfo=timezone.utc),
+            datetime(2027, 12, 31, tzinfo=timezone.utc),
+        )
+    )
+
+    _post_pfx(client, primeiro)
+    _post_pfx(client, segundo)
+
+    certificados = _db_rows(app.config["DATABASE_PATH"], "certificados")
+    assert len(certificados) == 2
+    assert {row["status_registro"] for row in certificados} == {"VERIFICAR"}
+    eventos = [
+        row["tipo_evento"]
+        for row in _db_rows(app.config["DATABASE_PATH"], "eventos_auditoria")
+    ]
+    assert eventos.count("DOCUMENTO_NAO_IDENTIFICADO") == 2

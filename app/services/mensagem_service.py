@@ -9,7 +9,9 @@ def gerar_mensagem(certificado):
     documento = certificado["cnpj_cpf"] or "nao identificado"
     data_vencimento = _data_br(certificado["data_validade"])
 
-    if certificado["status"] == VENCIDO:
+    status = certificado["status_vencimento"] if "status_vencimento" in certificado.keys() else certificado["status"]
+
+    if status == VENCIDO:
         tipo = "CERTIFICADO_VENCIDO"
         texto = (
             f"Ola, {nome_contato}, tudo bem?\n\n"

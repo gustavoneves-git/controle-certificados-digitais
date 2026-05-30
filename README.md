@@ -17,6 +17,7 @@ Funcionalidades entregues:
 - Auditoria de cadastro, senha invalida, senha visualizada, senha copiada, download e mensagem gerada.
 - Lista e detalhe dos certificados.
 - Geracao manual de mensagem para cliente.
+- Controle de substituicao: no maximo um certificado `ATIVO` por CNPJ/CPF.
 
 ## O que a Mark 1 ainda nao faz
 
@@ -66,6 +67,8 @@ python scripts/init_db.py
 ```
 
 O banco SQLite padrao fica em `data/app.db`.
+
+Nesta fase de desenvolvimento, se um banco local antigo ficar incompatível com o schema atual, recrie o banco removendo `data/app.db` e executando `python scripts/init_db.py` novamente. Nao faca isso com uma base real sem backup.
 
 ## Rodar o sistema
 
@@ -140,12 +143,30 @@ A validade usada pelo sistema vem exclusivamente da leitura interna do arquivo `
 
 ## Status
 
+Status de registro:
+
+- `ATIVO`: certificado principal daquele CNPJ/CPF.
+- `SUBSTITUIDO`: certificado antigo mantido apenas como historico.
+- `VERIFICAR`: certificado que precisa de revisao manual, por exemplo sem documento identificado ou senha invalida.
+
+Status de vencimento:
+
 - `VENCIDO`: validade menor que hoje.
 - `VENCE_EM_15_DIAS`: validade entre hoje e 15 dias, incluindo certificados que vencem hoje.
 - `VALIDO`: validade acima de 15 dias.
 - `SENHA_INVALIDA`: senha nao abre o `.pfx`.
 - `SEM_TELEFONE`: telefone vazio ou invalido.
 - `VERIFICAR`: informacao essencial ausente.
+
+## Substituicao por CNPJ/CPF
+
+Ao cadastrar um novo `.pfx`, o sistema sempre le o certificado antes de decidir. Se o CNPJ/CPF for identificado e ja existir um certificado `ATIVO` para o mesmo documento:
+
+- validade nova maior: o certificado antigo vira `SUBSTITUIDO` e o novo fica `ATIVO`;
+- validade nova menor ou igual: o cadastro e bloqueado e nada novo fica ativo;
+- documento nao identificado: o certificado fica `VERIFICAR` e nao participa da substituicao automatica.
+
+Dashboard e lista principal consideram apenas certificados `ATIVO` por padrao. Certificados `SUBSTITUIDO` ficam disponiveis pelo filtro da lista e nao entram como pendencia principal.
 
 ## Seguranca
 

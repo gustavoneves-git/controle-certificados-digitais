@@ -26,6 +26,8 @@ Para desenvolvimento e teste sem dados reais, gere certificados `.pfx` ficticios
 - [ ] Cadastre `empresa_teste_vencido.pfx` e confirme status vencido.
 - [ ] Cadastre `empresa_teste_vence_15_dias.pfx` e confirme status de atencao.
 - [ ] Cadastre `empresa_substituicao_antigo.pfx` e `empresa_substituicao_novo.pfx` para observar mesmo CNPJ com validades diferentes.
+- [ ] Confirme que o antigo fica com status de registro `SUBSTITUIDO`.
+- [ ] Confirme que o novo fica com status de registro `ATIVO`.
 - [ ] Confirme que nenhum arquivo `.pfx` aparece no `git status`.
 
 ## Teste com certificado real e senha correta
@@ -43,6 +45,7 @@ Para desenvolvimento e teste sem dados reais, gere certificados `.pfx` ficticios
 - [ ] Confira a data de validade.
 - [ ] Confira o emissor.
 - [ ] Confira o status calculado.
+- [ ] Confira o status de registro.
 - [ ] Na secao `Diagnostico tecnico`, confirme `Origem da validade: CERTIFICADO_PFX`.
 - [ ] Na secao `Diagnostico tecnico`, confira documento extraido, tipo do documento, dias ate vencer, SHA1, SHA256 e serial number.
 - [ ] Teste o botao `Mostrar` senha.
@@ -52,6 +55,20 @@ Para desenvolvimento e teste sem dados reais, gere certificados `.pfx` ficticios
 - [ ] Confirme que a mensagem usa contato, empresa, CNPJ/CPF e data correta.
 - [ ] Volte ao dashboard e valide os totais.
 - [ ] Valide as cores de status: vermelho para vencido, amarelo para vence em 15 dias, verde para valido e cinza para verificar, senha invalida ou sem telefone.
+
+## Teste de substituicao por CNPJ/CPF
+
+- [ ] Cadastre um certificado para um CNPJ/CPF ainda nao cadastrado.
+- [ ] Confirme que ele fica `ATIVO`.
+- [ ] Cadastre outro certificado do mesmo CNPJ/CPF com validade maior.
+- [ ] Confirme que o antigo fica `SUBSTITUIDO`.
+- [ ] Confirme que o novo fica `ATIVO`.
+- [ ] Confirme que o antigo nao aparece na lista principal de ativos.
+- [ ] Abra o filtro `Substituidos` e confirme que o antigo aparece ali.
+- [ ] Tente cadastrar um terceiro certificado do mesmo CNPJ/CPF com validade menor ou igual ao ativo.
+- [ ] Confirme o aviso: `Ja existe um certificado ativo para este CNPJ/CPF com validade igual ou superior.`
+- [ ] Confirme que esse terceiro certificado nao fica `ATIVO`.
+- [ ] Confirme que o dashboard nao conta certificados `SUBSTITUIDO` como pendencia principal.
 
 ## Teste com senha errada
 

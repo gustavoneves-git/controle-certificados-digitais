@@ -20,6 +20,10 @@ def create_certificado(data):
         "telefone_limpo",
         "observacao",
         "status",
+        "status_registro",
+        "status_vencimento",
+        "substituido_por_id",
+        "substituido_em",
     ]
     values = [data.get(field) for field in fields]
     placeholders = ", ".join(["?"] * len(fields))
@@ -32,10 +36,14 @@ def create_certificado(data):
     return cursor.lastrowid
 
 
-def list_certificados():
-    return get_db().execute(
-        "SELECT * FROM certificados ORDER BY data_validade IS NULL, data_validade ASC, id DESC"
-    ).fetchall()
+def list_certificados(status_registro="ATIVO"):
+    query = "SELECT * FROM certificados"
+    params = []
+    if status_registro:
+        query += " WHERE status_registro = ?"
+        params.append(status_registro)
+    query += " ORDER BY data_validade IS NULL, data_validade ASC, id DESC"
+    return get_db().execute(query, params).fetchall()
 
 
 def get_certificado(certificado_id):
@@ -44,13 +52,50 @@ def get_certificado(certificado_id):
     ).fetchone()
 
 
-def count_by_status(status):
+def get_ativo_by_documento(cnpj_cpf):
+    if not cnpj_cpf:
+        return None
+    return get_db().execute(
+        """
+        SELECT * FROM certificados
+        WHERE cnpj_cpf = ? AND status_registro = 'ATIVO'
+        ORDER BY data_validade DESC, id DESC
+        LIMIT 1
+        """,
+        (cnpj_cpf,),
+    ).fetchone()
+
+
+def marcar_substituido(certificado_id, substituido_por_id):
+    db = get_db()
+    db.execute(
+        """
+        UPDATE certificados
+        SET status_registro = 'SUBSTITUIDO',
+            substituido_por_id = ?,
+            substituido_em = CURRENT_TIMESTAMP,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = ?
+        """,
+        (substituido_por_id, certificado_id),
+    )
+    db.commit()
+
+
+def count_by_status(status, status_registro="ATIVO"):
     row = get_db().execute(
-        "SELECT COUNT(*) AS total FROM certificados WHERE status = ?", (status,)
+        """
+        SELECT COUNT(*) AS total FROM certificados
+        WHERE status_vencimento = ? AND status_registro = ?
+        """,
+        (status, status_registro),
     ).fetchone()
     return row["total"]
 
 
-def count_all():
-    row = get_db().execute("SELECT COUNT(*) AS total FROM certificados").fetchone()
+def count_all(status_registro="ATIVO"):
+    row = get_db().execute(
+        "SELECT COUNT(*) AS total FROM certificados WHERE status_registro = ?",
+        (status_registro,),
+    ).fetchone()
     return row["total"]

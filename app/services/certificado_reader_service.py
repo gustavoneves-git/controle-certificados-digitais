@@ -70,7 +70,7 @@ def extrair_nome(certificate):
 
 
 def _texto_para_busca(certificate, subject, issuer):
-    partes = [subject, issuer, str(certificate.serial_number)]
+    partes = [subject, issuer]
     for attr in certificate.subject:
         partes.append(str(attr.value))
     try:

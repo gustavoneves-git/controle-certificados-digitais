@@ -9,11 +9,19 @@
     <a class="btn btn-primary" href="{{ url_for('certificados.novo') }}">Novo certificado</a>
 </div>
 
+<div class="d-flex gap-2 mb-3">
+    <a class="btn btn-sm {{ 'btn-primary' if filtro == 'ATIVO' else 'btn-outline-primary' }}" href="{{ url_for('certificados.listar') }}">Ativos</a>
+    <a class="btn btn-sm {{ 'btn-primary' if filtro == 'SUBSTITUIDO' else 'btn-outline-primary' }}" href="{{ url_for('certificados.listar', status_registro='SUBSTITUIDO') }}">Substituidos</a>
+    <a class="btn btn-sm {{ 'btn-primary' if filtro == 'VERIFICAR' else 'btn-outline-primary' }}" href="{{ url_for('certificados.listar', status_registro='VERIFICAR') }}">Verificar</a>
+    <a class="btn btn-sm {{ 'btn-primary' if filtro == 'TODOS' else 'btn-outline-primary' }}" href="{{ url_for('certificados.listar', status_registro='TODOS') }}">Todos</a>
+</div>
+
 <div class="table-responsive table-shell">
     <table class="table align-middle mb-0">
         <thead>
         <tr>
             <th>Status</th>
+            <th>Registro</th>
             <th>Nome extraido</th>
             <th>CNPJ/CPF</th>
             <th>Tipo</th>
@@ -28,7 +36,8 @@
         <tbody>
         {% for cert in certificados %}
             <tr>
-                <td><span class="badge text-bg-{{ status_class(cert.status) }}">{{ cert.status }}</span></td>
+                <td><span class="badge text-bg-{{ status_class(cert.status_vencimento or cert.status) }}">{{ cert.status_vencimento or cert.status }}</span></td>
+                <td><span class="badge text-bg-{{ 'success' if cert.status_registro == 'ATIVO' else 'secondary' }}">{{ cert.status_registro }}</span></td>
                 <td>{{ cert.nome_extraido or "-" }}</td>
                 <td>{{ cert.cnpj_cpf or "-" }}</td>
                 <td>{{ cert.tipo_documento or "-" }}</td>
@@ -48,7 +57,7 @@
             </tr>
         {% else %}
             <tr>
-                <td colspan="10" class="text-center text-secondary py-5">Nenhum certificado cadastrado.</td>
+                <td colspan="11" class="text-center text-secondary py-5">Nenhum certificado cadastrado.</td>
             </tr>
         {% endfor %}
         </tbody>

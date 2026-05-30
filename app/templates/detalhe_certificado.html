@@ -4,7 +4,8 @@
 <div class="d-flex align-items-center justify-content-between mb-4">
     <div>
         <h1 class="h3 mb-1">{{ certificado.nome_extraido or certificado.nome_arquivo_original }}</h1>
-        <span class="badge text-bg-{{ status_class(certificado.status) }}">{{ certificado.status }}</span>
+        <span class="badge text-bg-{{ status_class(certificado.status_vencimento or certificado.status) }}">{{ certificado.status_vencimento or certificado.status }}</span>
+        <span class="badge text-bg-{{ 'success' if certificado.status_registro == 'ATIVO' else 'secondary' }}">{{ certificado.status_registro }}</span>
     </div>
     <div class="d-flex gap-2">
         <a class="btn btn-outline-secondary" href="{{ url_for('certificados.download', certificado_id=certificado.id) }}">Baixar .pfx</a>
@@ -13,6 +14,12 @@
         </form>
     </div>
 </div>
+
+{% if certificado.status_registro == "SUBSTITUIDO" %}
+    <div class="alert alert-secondary">
+        Este certificado foi substituido por um certificado mais novo.
+    </div>
+{% endif %}
 
 <div class="row g-4">
     <div class="col-12 col-xl-8">
@@ -46,7 +53,9 @@
                 <dt>Origem da validade</dt>
                 <dd>CERTIFICADO_PFX</dd>
                 <dt>Status calculado</dt>
-                <dd>{{ certificado.status }}</dd>
+                <dd>{{ certificado.status_vencimento or certificado.status }}</dd>
+                <dt>Status de registro</dt>
+                <dd>{{ certificado.status_registro }}</dd>
                 <dt>Dias ate vencer</dt>
                 <dd>{{ dias_para_vencer(certificado.data_validade) if certificado.data_validade else "-" }}</dd>
                 <dt>Thumbprint SHA1</dt>

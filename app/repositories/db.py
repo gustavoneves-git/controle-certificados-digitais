@@ -33,8 +33,13 @@ def init_db():
             telefone_limpo TEXT,
             observacao TEXT,
             status TEXT NOT NULL,
+            status_registro TEXT NOT NULL DEFAULT 'ATIVO',
+            status_vencimento TEXT,
+            substituido_por_id INTEGER,
+            substituido_em TEXT,
             created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+            updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY(substituido_por_id) REFERENCES certificados(id)
         );
 
         CREATE TABLE IF NOT EXISTS mensagens (
@@ -58,4 +63,32 @@ def init_db():
         );
         """
     )
+    _ensure_certificados_columns(db)
     db.commit()
+
+
+def _ensure_certificados_columns(db):
+    columns = {
+        row["name"]
+        for row in db.execute("PRAGMA table_info(certificados)").fetchall()
+    }
+    migrations = {
+        "status_registro": "ALTER TABLE certificados ADD COLUMN status_registro TEXT NOT NULL DEFAULT 'ATIVO'",
+        "status_vencimento": "ALTER TABLE certificados ADD COLUMN status_vencimento TEXT",
+        "substituido_por_id": "ALTER TABLE certificados ADD COLUMN substituido_por_id INTEGER",
+        "substituido_em": "ALTER TABLE certificados ADD COLUMN substituido_em TEXT",
+    }
+    for column, sql in migrations.items():
+        if column not in columns:
+            db.execute(sql)
+
+    db.execute(
+        """
+        UPDATE certificados
+        SET status_vencimento = COALESCE(status_vencimento, status),
+            status_registro = CASE
+                WHEN status IN ('SENHA_INVALIDA', 'VERIFICAR') THEN 'VERIFICAR'
+                ELSE COALESCE(status_registro, 'ATIVO')
+            END
+        """
+    )
