@@ -102,6 +102,26 @@ wsgi:app
 
 Em producao, mantenha `.env`, banco, certificados `.pfx` e backups somente no servidor, fora do Git.
 
+## Backup em producao
+
+Antes de qualquer atualizacao em producao, faca backup de:
+
+```text
+data/app.db
+storage/certificados/
+storage/certificados_arquivados/
+.env
+```
+
+Comando recomendado na Oracle:
+
+```bash
+cd /opt/consiste/legal-certificados
+.venv/bin/python scripts/backup_mark1.py --backup-dir /opt/consiste/backups/legal-certificados --keep 60
+```
+
+O roteiro completo de backup automatico e restauracao esta em `docs/BACKUP_PRODUCAO.md`.
+
 Login padrao da Mark 1:
 
 - configure `APP_LOGIN_USER` no `.env`;
