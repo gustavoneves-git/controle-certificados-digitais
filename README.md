@@ -38,6 +38,7 @@ Funcionalidades entregues:
 - CNPJ/CPF extraido do certificado identifica a empresa/certificado.
 - Telefone limpo identifica o canal de atendimento.
 - Nome do contato personaliza a mensagem.
+- Sexo do contato e opcional e usado somente para tratamento na mensagem: `Sr.` para homem e `Sra.` para mulher.
 
 ## Instalacao
 
@@ -138,6 +139,8 @@ Copie o hash impresso para `APP_LOGIN_PASSWORD_HASH`. A Mark 1 usa login simples
 ## Cadastro de certificado
 
 Na tela "Novo certificado", envie um `.pfx`, informe a senha, o nome do contato, o telefone limpo e uma observacao opcional. A senha e testada contra o arquivo; se estiver incorreta, o cadastro fica com status `SENHA_INVALIDA` e um evento de auditoria e registrado.
+
+O campo `Sexo do contato` e opcional. Quando preenchido como homem ou mulher, a mensagem gerada usa `Sr.` ou `Sra.` antes do nome. Se ficar como nao informado, a mensagem usa o nome exatamente como foi cadastrado.
 
 ## Certificados ficticios para desenvolvimento
 

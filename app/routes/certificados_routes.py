@@ -76,8 +76,12 @@ def novo():
     arquivo = request.files.get("arquivo")
     senha = request.form.get("senha", "")
     nome_contato = request.form.get("nome_contato", "").strip()
+    sexo_contato = request.form.get("sexo_contato", "").strip().upper()
     telefone_limpo = request.form.get("telefone_limpo", "").strip()
     observacao = request.form.get("observacao", "").strip()
+
+    if sexo_contato not in {"", "HOMEM", "MULHER"}:
+        sexo_contato = ""
 
     if not arquivo or not extensao_valida(arquivo.filename):
         flash("O arquivo enviado nao parece ser um certificado .pfx valido.", "danger")
@@ -142,6 +146,7 @@ def novo():
             "caminho_arquivo": caminho,
             "senha_criptografada": senha_criptografada,
             "nome_contato": nome_contato,
+            "sexo_contato": sexo_contato,
             "telefone_limpo": telefone_limpo,
             "observacao": observacao,
             "status": status_vencimento,

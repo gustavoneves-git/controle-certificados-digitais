@@ -4,7 +4,7 @@ from app.services.vencimento_service import VENCIDO
 
 
 def gerar_mensagem(certificado):
-    nome_contato = certificado["nome_contato"] or "cliente"
+    nome_contato = _nome_contato_com_tratamento(certificado)
     nome_empresa = certificado["nome_extraido"] or "empresa"
     documento = certificado["cnpj_cpf"] or "nao identificado"
     data_vencimento = _data_br(certificado["data_validade"])
@@ -32,6 +32,35 @@ def gerar_mensagem(certificado):
             "Ficamos a disposicao."
         )
     return tipo, texto
+
+
+def _nome_contato_com_tratamento(certificado):
+    nome = certificado["nome_contato"] or "cliente"
+    sexo = _get_optional(certificado, "sexo_contato")
+    if not sexo:
+        return nome
+    nome_sem_tratamento = _remover_tratamento(nome)
+    if sexo == "HOMEM":
+        return f"Sr. {nome_sem_tratamento}"
+    if sexo == "MULHER":
+        return f"Sra. {nome_sem_tratamento}"
+    return nome
+
+
+def _remover_tratamento(nome):
+    tratamentos = ("sr. ", "sra. ", "sr ", "sra ")
+    nome_limpo = nome.strip()
+    nome_normalizado = nome_limpo.lower()
+    for tratamento in tratamentos:
+        if nome_normalizado.startswith(tratamento):
+            return nome_limpo[len(tratamento):].strip()
+    return nome_limpo
+
+
+def _get_optional(certificado, key):
+    if hasattr(certificado, "keys"):
+        return certificado[key] if key in certificado.keys() else None
+    return certificado.get(key)
 
 
 def _data_br(value):

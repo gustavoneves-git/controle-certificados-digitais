@@ -30,6 +30,7 @@ def init_db():
             tipo_documento TEXT,
             nome_extraido TEXT,
             nome_contato TEXT,
+            sexo_contato TEXT,
             telefone_limpo TEXT,
             observacao TEXT,
             status TEXT NOT NULL,
@@ -79,6 +80,7 @@ def _ensure_certificados_columns(db):
         "substituido_por_id": "ALTER TABLE certificados ADD COLUMN substituido_por_id INTEGER",
         "substituido_em": "ALTER TABLE certificados ADD COLUMN substituido_em TEXT",
         "arquivo_arquivado_em": "ALTER TABLE certificados ADD COLUMN arquivo_arquivado_em TEXT",
+        "sexo_contato": "ALTER TABLE certificados ADD COLUMN sexo_contato TEXT",
     }
     for column, sql in migrations.items():
         if column not in columns:

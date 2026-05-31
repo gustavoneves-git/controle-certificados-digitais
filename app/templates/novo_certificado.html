@@ -25,6 +25,15 @@
             <input class="form-control" type="text" id="nome_contato" name="nome_contato" required>
         </div>
         <div class="mb-3">
+            <label for="sexo_contato" class="form-label">Sexo do contato</label>
+            <select class="form-select" id="sexo_contato" name="sexo_contato">
+                <option value="">Nao informado</option>
+                <option value="HOMEM">Homem</option>
+                <option value="MULHER">Mulher</option>
+            </select>
+            <div class="form-text">Usado apenas para gerar o tratamento da mensagem: Sr. ou Sra.</div>
+        </div>
+        <div class="mb-3">
             <label for="telefone_limpo" class="form-label">Telefone limpo</label>
             <input class="form-control" type="text" id="telefone_limpo" name="telefone_limpo" inputmode="numeric" data-phone-input required>
             <div class="form-text">Digite apenas o numero usado na busca do Messenger. Exemplo: 916031398.</div>

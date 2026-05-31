@@ -17,6 +17,7 @@ def create_certificado(data):
         "tipo_documento",
         "nome_extraido",
         "nome_contato",
+        "sexo_contato",
         "telefone_limpo",
         "observacao",
         "status",
