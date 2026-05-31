@@ -78,6 +78,30 @@ python run.py
 
 Acesse `http://127.0.0.1:5000`.
 
+## Deploy em Oracle
+
+Para publicar em producao com o dominio:
+
+```text
+https://legal.consistecontabilidade.com
+```
+
+use o roteiro em `docs/DEPLOY_ORACLE.md`.
+
+Resumo do apontamento DNS:
+
+```text
+legal.consistecontabilidade.com -> 163.176.226.185
+```
+
+A entrada WSGI de producao e:
+
+```text
+wsgi:app
+```
+
+Em producao, mantenha `.env`, banco, certificados `.pfx` e backups somente no servidor, fora do Git.
+
 Login padrao da Mark 1:
 
 - configure `APP_LOGIN_USER` no `.env`;
