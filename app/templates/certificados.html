@@ -41,6 +41,9 @@
             <span>{{ cert.cnpj_cpf or "-" }}</span>
             <span>{{ cert.nome_contato or "-" }}</span>
             <span>{{ cert.telefone_limpo or "-" }}</span>
+            <span class="cert-mobile-status cert-mobile-status-{{ status_class(cert.status_vencimento or cert.status) }}">
+                {{ cert.status_vencimento or cert.status }}{% if cert.data_validade %} · {{ cert.data_validade|date_br }}{% endif %}
+            </span>
         </a>
     {% else %}
         <div class="cert-mobile-empty">Nenhum certificado cadastrado.</div>

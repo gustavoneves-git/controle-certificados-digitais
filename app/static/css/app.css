@@ -132,6 +132,42 @@ body {
     font-weight: 700;
 }
 
+.cert-mobile-status {
+    align-self: start;
+    border: 1px solid #6c757d;
+    border-radius: 6px;
+    color: #4b5563;
+    display: inline-flex;
+    font-size: 0.8rem;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-top: 6px;
+    padding: 6px 9px;
+    text-transform: uppercase;
+    width: fit-content;
+}
+
+.cert-mobile-status-danger {
+    border-color: #dc3545;
+    color: #b02a37;
+}
+
+.cert-mobile-status-warning {
+    border-color: #ffc107;
+    color: #8a6400;
+}
+
+.cert-mobile-status-success {
+    border-color: #198754;
+    color: #146c43;
+}
+
+.cert-mobile-status-secondary,
+.cert-mobile-status-muted {
+    border-color: #6c757d;
+    color: #4b5563;
+}
+
 .cert-mobile-card:hover {
     border-color: #9fb2ca;
     box-shadow: 0 6px 18px rgba(31, 41, 51, 0.08);
