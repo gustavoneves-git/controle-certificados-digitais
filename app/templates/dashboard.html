@@ -10,51 +10,51 @@
 </div>
 
 <div class="row g-3">
-    <div class="col-12 col-sm-6 col-xl-2">
+    <div class="col-12 col-sm-6 col-xl-3">
         <a class="metric metric-link" href="{{ url_for('certificados.listar') }}">
             <span>Ativos</span>
             <strong>{{ stats.total }}</strong>
         </a>
     </div>
-    <div class="col-12 col-sm-6 col-xl-2">
+    <div class="col-12 col-sm-6 col-xl-3">
         <a class="metric metric-link metric-danger" href="{{ url_for('certificados.listar', filtro='VENCIDO') }}">
             <span>Vencidos</span>
             <strong>{{ stats.vencidos }}</strong>
         </a>
     </div>
-    <div class="col-12 col-sm-6 col-xl-2">
+    <div class="col-12 col-sm-6 col-xl-3">
         <a class="metric metric-link metric-warning" href="{{ url_for('certificados.listar', filtro='VENCE_EM_15_DIAS') }}">
             <span>Vencem em 15 dias</span>
             <strong>{{ stats.vence_15 }}</strong>
         </a>
     </div>
-    <div class="col-12 col-sm-6 col-xl-2">
+    <div class="col-12 col-sm-6 col-xl-3">
         <a class="metric metric-link metric-success" href="{{ url_for('certificados.listar', filtro='VALIDO') }}">
-            <span>Validos</span>
+            <span>Válidos</span>
             <strong>{{ stats.validos }}</strong>
         </a>
     </div>
-    <div class="col-12 col-sm-6 col-xl-2">
+    <div class="col-12 col-sm-6 col-xl-3">
         <a class="metric metric-link metric-muted" href="{{ url_for('certificados.listar', filtro='VERIFICAR') }}">
             <span>Verificar</span>
             <strong>{{ stats.verificar }}</strong>
         </a>
     </div>
-    <div class="col-12 col-sm-6 col-xl-2">
+    <div class="col-12 col-sm-6 col-xl-3">
         <a class="metric metric-link metric-muted" href="{{ url_for('certificados.listar', filtro='SENHA_INVALIDA') }}">
-            <span>Senha invalida</span>
+            <span>Senha inválida</span>
             <strong>{{ stats.senha_invalida }}</strong>
         </a>
     </div>
-    <div class="col-12 col-sm-6 col-xl-2">
+    <div class="col-12 col-sm-6 col-xl-3">
         <a class="metric metric-link metric-muted" href="{{ url_for('certificados.listar', filtro='SEM_TELEFONE') }}">
             <span>Sem telefone</span>
             <strong>{{ stats.sem_telefone }}</strong>
         </a>
     </div>
-    <div class="col-12 col-sm-6 col-xl-2">
+    <div class="col-12 col-sm-6 col-xl-3">
         <a class="metric metric-link metric-muted" href="{{ url_for('certificados.listar', filtro='SUBSTITUIDO') }}">
-            <span>Substituidos</span>
+            <span>Substituídos</span>
             <strong>{{ stats.substituidos }}</strong>
         </a>
     </div>

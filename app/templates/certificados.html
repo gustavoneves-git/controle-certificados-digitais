@@ -16,7 +16,6 @@
             ('VENCIDO', 'Vencidos'),
             ('VENCE_EM_15_DIAS', 'Vencem em 15 dias'),
             ('VALIDO', 'Válidos'),
-            ('VERIFICAR', 'Verificar'),
             ('SEM_TELEFONE', 'Sem telefone'),
             ('SENHA_INVALIDA', 'Senha inválida'),
             ('SUBSTITUIDO', 'Substituídos'),
@@ -35,7 +34,20 @@
     </form>
 </div>
 
-<div class="table-responsive table-shell">
+<div class="cert-mobile-list">
+    {% for cert in certificados %}
+        <a class="cert-mobile-card" href="{{ url_for('certificados.detalhe', certificado_id=cert.id) }}">
+            <strong>{{ cert.nome_extraido or "-" }}</strong>
+            <span>{{ cert.cnpj_cpf or "-" }}</span>
+            <span>{{ cert.nome_contato or "-" }}</span>
+            <span>{{ cert.telefone_limpo or "-" }}</span>
+        </a>
+    {% else %}
+        <div class="cert-mobile-empty">Nenhum certificado cadastrado.</div>
+    {% endfor %}
+</div>
+
+<div class="table-responsive table-shell cert-desktop-table">
     <table class="table align-middle mb-0">
         <thead>
         <tr>

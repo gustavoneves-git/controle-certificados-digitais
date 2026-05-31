@@ -388,9 +388,9 @@ def test_dashboard_tem_cards_operacionais_clicaveis(tmp_path, monkeypatch):
     assert response.status_code == 200
     assert b"Ativos" in response.data
     assert b"Verificar" in response.data
-    assert b"Senha invalida" in response.data
+    assert "Senha inválida".encode() in response.data
     assert b"Sem telefone" in response.data
-    assert b"Substituidos" in response.data
+    assert "Substituídos".encode() in response.data
     assert b"/certificados/?filtro=VENCIDO" in response.data
     assert b"/certificados/?filtro=SUBSTITUIDO" in response.data
 
