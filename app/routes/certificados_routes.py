@@ -201,6 +201,20 @@ def novo():
 
     if status_vencimento != SENHA_INVALIDA:
         flash("Certificado cadastrado.", "success")
+    pendencias_contato = []
+    if not nome_contato:
+        pendencias_contato.append("nome do contato")
+    if not sexo_contato:
+        pendencias_contato.append("sexo do contato")
+    if not telefone_limpo:
+        pendencias_contato.append("telefone limpo")
+    if pendencias_contato:
+        flash(
+            "Atencao: certificado salvo com pendencia de contato: "
+            + ", ".join(pendencias_contato)
+            + ". Complete depois pelo filtro Sem telefone ou pela conferencia operacional.",
+            "warning",
+        )
     return redirect(url_for("certificados.detalhe", certificado_id=certificado_id))
 
 

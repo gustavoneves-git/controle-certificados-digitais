@@ -248,9 +248,14 @@ def test_upload_sem_dados_de_contato_fica_pendente_sem_telefone(tmp_path, monkey
             "observacao": "",
         },
         content_type="multipart/form-data",
+        follow_redirects=True,
     )
 
-    assert response.status_code == 302
+    assert response.status_code == 200
+    assert b"Atencao: certificado salvo com pendencia de contato" in response.data
+    assert b"nome do contato" in response.data
+    assert b"sexo do contato" in response.data
+    assert b"telefone limpo" in response.data
     certificado = _db_rows(app.config["DATABASE_PATH"], "certificados")[0]
     assert certificado["nome_contato"] == ""
     assert certificado["sexo_contato"] == ""
