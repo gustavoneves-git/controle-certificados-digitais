@@ -6,7 +6,7 @@ from werkzeug.utils import secure_filename
 
 
 def extensao_valida(filename):
-    return bool(filename) and filename.lower().endswith(".pfx")
+    return bool(filename) and filename.lower().endswith((".pfx", ".p12"))
 
 
 def salvar_certificado(file_storage, storage_dir):

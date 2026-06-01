@@ -3,6 +3,7 @@ from pathlib import Path
 from app.services.certificado_storage_service import (
     arquivar_certificado,
     caminho_permitido,
+    extensao_valida,
     remover_certificado,
     salvar_certificado,
 )
@@ -25,6 +26,12 @@ def test_salvar_certificado_usa_nome_seguro_e_nao_sobrescreve(tmp_path):
     assert Path(primeiro).name.endswith("cliente_teste.pfx")
     assert ".." not in Path(primeiro).name
     assert Path(primeiro).read_bytes() == b"conteudo"
+
+
+def test_extensao_valida_aceita_pfx_e_p12():
+    assert extensao_valida("certificado.pfx")
+    assert extensao_valida("certificado.P12")
+    assert not extensao_valida("certificado.txt")
 
 
 def test_caminho_permitido_limita_download_ao_storage(tmp_path):

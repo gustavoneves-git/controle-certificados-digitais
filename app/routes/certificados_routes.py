@@ -84,7 +84,7 @@ def novo():
         sexo_contato = ""
 
     if not arquivo or not extensao_valida(arquivo.filename):
-        flash("O arquivo enviado nao parece ser um certificado .pfx valido.", "danger")
+        flash("O arquivo enviado nao parece ser um certificado .pfx ou .p12 valido.", "danger")
         return redirect(url_for("certificados.novo"))
 
     telefone_valido = is_telefone_limpo_valido(telefone_limpo)
@@ -137,7 +137,7 @@ def novo():
         status_registro = "VERIFICAR"
         status_vencimento = SENHA_INVALIDA
         flash("Nao foi possivel abrir o certificado. Verifique se a senha esta correta.", "danger")
-        flash("O arquivo enviado nao parece ser um certificado .pfx valido.", "warning")
+        flash("O arquivo enviado nao parece ser um certificado .pfx ou .p12 valido.", "warning")
 
     caminho = salvar_certificado(arquivo, current_app.config["STORAGE_CERTIFICADOS"])
     certificado_id = certificados.create_certificado(

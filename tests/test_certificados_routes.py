@@ -102,7 +102,7 @@ def test_upload_invalido_nao_usa_nome_do_arquivo_como_validade(tmp_path, monkeyp
 
     assert response.status_code == 200
     assert b"Nao foi possivel abrir o certificado" in response.data
-    assert b"O arquivo enviado nao parece ser um certificado .pfx valido" in response.data
+    assert b"O arquivo enviado nao parece ser um certificado .pfx ou .p12 valido" in response.data
     certificado = _db_rows(app.config["DATABASE_PATH"], "certificados")[0]
     assert certificado["status"] == "SENHA_INVALIDA"
     assert certificado["data_validade"] is None
@@ -127,7 +127,7 @@ def test_extensao_invalida_mostra_mensagem_amigavel(tmp_path, monkeypatch):
     )
 
     assert response.status_code == 200
-    assert b"O arquivo enviado nao parece ser um certificado .pfx valido" in response.data
+    assert b"O arquivo enviado nao parece ser um certificado .pfx ou .p12 valido" in response.data
     assert _db_rows(app.config["DATABASE_PATH"], "certificados") == []
 
 
@@ -209,6 +209,28 @@ def test_download_funciona_com_caminho_relativo_de_storage(tmp_path, monkeypatch
 
     assert response.status_code == 200
     assert response.headers["Content-Disposition"].startswith("attachment;")
+
+
+def test_upload_aceita_extensao_p12(tmp_path, monkeypatch):
+    app = _app(tmp_path, monkeypatch)
+    client = app.test_client()
+
+    response = client.post(
+        "/certificados/novo",
+        data={
+            "arquivo": (io.BytesIO(_pfx_bytes()), "cliente.p12"),
+            "senha": "123456",
+            "nome_contato": "Maria",
+            "telefone_limpo": "916031398",
+            "observacao": "",
+        },
+        content_type="multipart/form-data",
+    )
+
+    assert response.status_code == 302
+    certificado = _db_rows(app.config["DATABASE_PATH"], "certificados")[0]
+    assert certificado["nome_arquivo_original"] == "cliente.p12"
+    assert certificado["cnpj_cpf"] == "12345678000195"
 
 
 def test_primeiro_certificado_de_documento_fica_ativo(tmp_path, monkeypatch):

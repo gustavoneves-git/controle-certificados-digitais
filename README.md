@@ -4,13 +4,13 @@ Sistema interno Mark 1 para controle manual de certificados digitais de clientes
 
 ## O que a Mark 1 faz
 
-O usuario cadastra um arquivo `.pfx`, informa a senha, o nome do contato e o telefone limpo usado para busca futura no Messenger/WhatsApp. O sistema le os dados reais do certificado, controla vencimentos, guarda o arquivo para download futuro, protege a senha e gera mensagens manuais para o cliente.
+O usuario cadastra um arquivo `.pfx` ou `.p12`, informa a senha, o nome do contato e o telefone limpo usado para busca futura no Messenger/WhatsApp. O sistema le os dados reais do certificado, controla vencimentos, guarda o arquivo para download futuro, protege a senha e gera mensagens manuais para o cliente.
 
 Funcionalidades entregues:
 
 - Dashboard com totais por status.
-- Cadastro manual de certificado `.pfx`.
-- Leitura real do `.pfx` com `cryptography`.
+- Cadastro manual de certificado `.pfx` ou `.p12`.
+- Leitura real do arquivo PKCS#12 com `cryptography`.
 - Extracao de subject, issuer, emissao, validade, serial, SHA1, SHA256, CNPJ/CPF quando possivel e nome extraido.
 - Armazenamento do `.pfx` para download futuro.
 - Criptografia da senha do certificado com chave do `.env`.
@@ -138,7 +138,7 @@ Copie o hash impresso para `APP_LOGIN_PASSWORD_HASH`. A Mark 1 usa login simples
 
 ## Cadastro de certificado
 
-Na tela "Novo certificado", envie um `.pfx`, informe a senha, o nome do contato, o telefone limpo e uma observacao opcional. A senha e testada contra o arquivo; se estiver incorreta, o cadastro fica com status `SENHA_INVALIDA` e um evento de auditoria e registrado.
+Na tela "Novo certificado", envie um `.pfx` ou `.p12`, informe a senha, o nome do contato, o telefone limpo e uma observacao opcional. A senha e testada contra o arquivo; se estiver incorreta, o cadastro fica com status `SENHA_INVALIDA` e um evento de auditoria e registrado.
 
 O campo `Sexo do contato` e opcional. Quando preenchido como homem ou mulher, a mensagem gerada usa `Sr.` ou `Sra.` antes do nome. Se ficar como nao informado, a mensagem usa o nome exatamente como foi cadastrado.
 
@@ -168,7 +168,7 @@ Todos usam nomes e CNPJs ficticios, apenas para validar leitura, status, extraca
 
 1. Inicie o servidor local.
 2. Acesse `http://127.0.0.1:5000/certificados/novo`.
-3. Envie um arquivo real `.pfx`.
+3. Envie um arquivo real `.pfx` ou `.p12`.
 4. Informe a senha correta do certificado.
 5. Preencha o nome do contato e o telefone limpo, por exemplo `916031398`.
 6. Salve e confira a tela de detalhe.
