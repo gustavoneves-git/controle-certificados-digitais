@@ -6,10 +6,12 @@ document.querySelectorAll("[data-phone-form]").forEach((form) => {
     const input = form.querySelector("[data-phone-input]");
     const button = form.querySelector("[data-save-button]");
     const update = () => {
-        const ok = telefoneValido(input.value.trim());
+        const valor = input.value.trim();
+        const vazio = valor.length === 0;
+        const ok = telefoneValido(valor);
         input.classList.toggle("is-valid", ok);
-        input.classList.toggle("is-invalid", input.value.length > 0 && !ok);
-        button.disabled = !ok;
+        input.classList.toggle("is-invalid", !vazio && !ok);
+        button.disabled = !vazio && !ok;
     };
     input.addEventListener("input", update);
     update();

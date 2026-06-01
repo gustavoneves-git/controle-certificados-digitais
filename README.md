@@ -138,7 +138,7 @@ Copie o hash impresso para `APP_LOGIN_PASSWORD_HASH`. A Mark 1 usa login simples
 
 ## Cadastro de certificado
 
-Na tela "Novo certificado", envie um `.pfx` ou `.p12`, informe a senha, o nome do contato, o telefone limpo e uma observacao opcional. A senha e testada contra o arquivo; se estiver incorreta, o cadastro fica com status `SENHA_INVALIDA` e um evento de auditoria e registrado.
+Na tela "Novo certificado", envie um `.pfx` ou `.p12` e informe a senha. Nome do contato, sexo do contato, telefone limpo e observacao sao opcionais. A senha e testada contra o arquivo; se estiver incorreta, o cadastro fica com status `SENHA_INVALIDA` e um evento de auditoria e registrado.
 
 O campo `Sexo do contato` e opcional. Quando preenchido como homem ou mulher, a mensagem gerada usa `Sr.` ou `Sra.` antes do nome. Se ficar como nao informado, a mensagem usa o nome exatamente como foi cadastrado.
 
@@ -187,6 +187,8 @@ Se a senha estiver errada ou o arquivo nao for um `.pfx` valido, o sistema nao d
 ## Telefone limpo
 
 Use apenas o numero sem DDD, sem `+55`, sem espacos, sem tracos, sem parenteses e sem letras. Exemplo aceito: `916031398`.
+
+O telefone pode ficar em branco quando o responsavel ainda nao foi identificado. Nesse caso, o certificado fica cadastrado e aparece no filtro `Sem telefone` para completar depois.
 
 Exemplos rejeitados:
 

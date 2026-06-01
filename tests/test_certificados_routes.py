@@ -233,6 +233,34 @@ def test_upload_aceita_extensao_p12(tmp_path, monkeypatch):
     assert certificado["cnpj_cpf"] == "12345678000195"
 
 
+def test_upload_sem_dados_de_contato_fica_pendente_sem_telefone(tmp_path, monkeypatch):
+    app = _app(tmp_path, monkeypatch)
+    client = app.test_client()
+
+    response = client.post(
+        "/certificados/novo",
+        data={
+            "arquivo": (io.BytesIO(_pfx_bytes()), "cliente.pfx"),
+            "senha": "123456",
+            "nome_contato": "",
+            "sexo_contato": "",
+            "telefone_limpo": "",
+            "observacao": "",
+        },
+        content_type="multipart/form-data",
+    )
+
+    assert response.status_code == 302
+    certificado = _db_rows(app.config["DATABASE_PATH"], "certificados")[0]
+    assert certificado["nome_contato"] == ""
+    assert certificado["sexo_contato"] == ""
+    assert certificado["telefone_limpo"] == ""
+    assert certificado["status_vencimento"] == "SEM_TELEFONE"
+
+    lista = client.get("/certificados/?filtro=SEM_TELEFONE")
+    assert f'/certificados/{certificado["id"]}'.encode() in lista.data
+
+
 def test_primeiro_certificado_de_documento_fica_ativo(tmp_path, monkeypatch):
     app = _app(tmp_path, monkeypatch)
     client = app.test_client()
