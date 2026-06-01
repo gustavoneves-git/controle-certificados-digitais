@@ -101,6 +101,25 @@ body {
     overflow: hidden;
 }
 
+.cert-desktop-table .table {
+    table-layout: fixed;
+}
+
+.cert-desktop-table th,
+.cert-desktop-table td {
+    overflow-wrap: anywhere;
+}
+
+.status-cell { width: 84px; }
+.registro-cell { width: 78px; }
+.nome-cell { width: 164px; }
+.documento-cell { width: 138px; }
+.tipo-cell { width: 52px; }
+.contato-cell { width: 112px; }
+.telefone-cell { width: 96px; }
+.validade-cell { width: 92px; }
+.dias-cell { width: 58px; }
+
 .cert-mobile-list {
     display: none;
 }
@@ -179,11 +198,13 @@ body {
 }
 
 .issuer-cell {
-    max-width: 240px;
+    max-width: 120px;
+    width: 120px;
 }
 
 .actions-cell {
-    min-width: 310px;
+    min-width: 224px;
+    width: 224px;
 }
 
 .actions-muted .btn {
@@ -191,11 +212,11 @@ body {
 }
 
 .action-group {
-    align-items: center;
-    display: flex;
-    flex-wrap: wrap;
+    align-items: stretch;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 6px;
-    max-width: 330px;
+    width: 100%;
 }
 
 .action-group form {
@@ -203,7 +224,8 @@ body {
 }
 
 .action-group .btn {
-    min-width: 74px;
+    min-width: 0;
+    width: 100%;
 }
 
 .detail-grid {
