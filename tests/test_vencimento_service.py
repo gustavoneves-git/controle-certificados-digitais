@@ -5,6 +5,7 @@ from app.services.vencimento_service import (
     VENCE_EM_15_DIAS,
     VENCIDO,
     calcular_status,
+    calcular_status_contato,
     dias_para_vencer,
 )
 
@@ -28,3 +29,10 @@ def test_calcular_status_com_datetime_e_timezone():
 
     assert calcular_status(data_com_timezone, hoje=hoje) == VENCE_EM_15_DIAS
     assert calcular_status("2026-06-17T00:00:00Z", hoje=hoje) == VALIDO
+
+
+def test_calcular_status_contato():
+    assert calcular_status_contato("Maria", "MULHER", "916031398") == "COM_CONTATO"
+    assert calcular_status_contato("", "MULHER", "916031398") == "SEM_CONTATO"
+    assert calcular_status_contato("Maria", "", "916031398") == "SEM_CONTATO"
+    assert calcular_status_contato("Maria", "MULHER", "") == "SEM_CONTATO"

@@ -5,8 +5,9 @@ VALIDO = "VALIDO"
 VENCE_EM_15_DIAS = "VENCE_EM_15_DIAS"
 VENCIDO = "VENCIDO"
 SENHA_INVALIDA = "SENHA_INVALIDA"
-SEM_TELEFONE = "SEM_TELEFONE"
 VERIFICAR = "VERIFICAR"
+SEM_CONTATO = "SEM_CONTATO"
+COM_CONTATO = "COM_CONTATO"
 
 
 def parse_date(value):
@@ -32,11 +33,9 @@ def dias_para_vencer(data_validade, hoje=None):
     return (validade - hoje).days
 
 
-def calcular_status(data_validade, telefone_valido=True, senha_invalida=False, essencial_ok=True, hoje=None):
+def calcular_status(data_validade, senha_invalida=False, essencial_ok=True, hoje=None):
     if senha_invalida:
         return SENHA_INVALIDA
-    if not telefone_valido:
-        return SEM_TELEFONE
     if not essencial_ok:
         return VERIFICAR
 
@@ -50,12 +49,19 @@ def calcular_status(data_validade, telefone_valido=True, senha_invalida=False, e
     return VALIDO
 
 
+def calcular_status_contato(nome_contato=None, sexo_contato=None, telefone_limpo=None):
+    if nome_contato and sexo_contato and telefone_limpo:
+        return COM_CONTATO
+    return SEM_CONTATO
+
+
 def status_class(status):
     return {
         VENCIDO: "danger",
         VENCE_EM_15_DIAS: "warning",
         VALIDO: "success",
         SENHA_INVALIDA: "secondary",
-        SEM_TELEFONE: "secondary",
         VERIFICAR: "secondary",
+        SEM_CONTATO: "secondary",
+        COM_CONTATO: "success",
     }.get(status, "secondary")

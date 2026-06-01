@@ -36,6 +36,7 @@ def init_db():
             status TEXT NOT NULL,
             status_registro TEXT NOT NULL DEFAULT 'ATIVO',
             status_vencimento TEXT,
+            status_contato TEXT NOT NULL DEFAULT 'COM_CONTATO',
             substituido_por_id INTEGER,
             substituido_em TEXT,
             arquivo_arquivado_em TEXT,
@@ -77,6 +78,7 @@ def _ensure_certificados_columns(db):
     migrations = {
         "status_registro": "ALTER TABLE certificados ADD COLUMN status_registro TEXT NOT NULL DEFAULT 'ATIVO'",
         "status_vencimento": "ALTER TABLE certificados ADD COLUMN status_vencimento TEXT",
+        "status_contato": "ALTER TABLE certificados ADD COLUMN status_contato TEXT NOT NULL DEFAULT 'COM_CONTATO'",
         "substituido_por_id": "ALTER TABLE certificados ADD COLUMN substituido_por_id INTEGER",
         "substituido_em": "ALTER TABLE certificados ADD COLUMN substituido_em TEXT",
         "arquivo_arquivado_em": "ALTER TABLE certificados ADD COLUMN arquivo_arquivado_em TEXT",
@@ -89,7 +91,23 @@ def _ensure_certificados_columns(db):
     db.execute(
         """
         UPDATE certificados
-        SET status_vencimento = COALESCE(status_vencimento, status),
+        SET status_vencimento = CASE
+                WHEN status_vencimento = 'SEM_TELEFONE' THEN
+                    CASE
+                        WHEN data_validade IS NULL THEN 'VERIFICAR'
+                        WHEN date(data_validade) < date('now') THEN 'VENCIDO'
+                        WHEN date(data_validade) <= date('now', '+15 days') THEN 'VENCE_EM_15_DIAS'
+                        ELSE 'VALIDO'
+                    END
+                ELSE COALESCE(status_vencimento, status)
+            END,
+            status_contato = CASE
+                WHEN COALESCE(nome_contato, '') = ''
+                    OR COALESCE(sexo_contato, '') = ''
+                    OR COALESCE(telefone_limpo, '') = ''
+                    THEN 'SEM_CONTATO'
+                ELSE COALESCE(status_contato, 'COM_CONTATO')
+            END,
             status_registro = CASE
                 WHEN status IN ('SENHA_INVALIDA', 'VERIFICAR') THEN 'VERIFICAR'
                 ELSE COALESCE(status_registro, 'ATIVO')

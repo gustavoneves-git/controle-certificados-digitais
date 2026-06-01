@@ -3,7 +3,7 @@ from flask import Blueprint, render_template
 from app.repositories import certificado_repository as certificados
 from app.services.vencimento_service import (
     SENHA_INVALIDA,
-    SEM_TELEFONE,
+    SEM_CONTATO,
     VALIDO,
     VENCE_EM_15_DIAS,
     VENCIDO,
@@ -22,7 +22,7 @@ def index():
         "validos": certificados.count_by_status(VALIDO),
         "verificar": certificados.count_by_registro(VERIFICAR),
         "senha_invalida": certificados.count_by_status(SENHA_INVALIDA, status_registro=VERIFICAR),
-        "sem_telefone": certificados.count_by_status(SEM_TELEFONE),
+        "sem_contato": certificados.count_by_contato(SEM_CONTATO),
         "substituidos": certificados.count_by_registro("SUBSTITUIDO"),
     }
     return render_template("dashboard.html", stats=stats)

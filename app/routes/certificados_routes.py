@@ -25,8 +25,10 @@ from app.services.crypto_service import criptografar_senha, descriptografar_senh
 from app.services.telefone_service import TELEFONE_INSTRUCAO, is_telefone_limpo_valido
 from app.services.vencimento_service import (
     SENHA_INVALIDA,
+    SEM_CONTATO,
     VERIFICAR,
     calcular_status,
+    calcular_status_contato,
     dias_para_vencer,
     parse_date,
     status_class,
@@ -45,7 +47,7 @@ def listar():
         "VENCE_EM_15_DIAS": ("ATIVO", "VENCE_EM_15_DIAS"),
         "VALIDO": ("ATIVO", "VALIDO"),
         "VERIFICAR": ("VERIFICAR", None),
-        "SEM_TELEFONE": ("ATIVO", "SEM_TELEFONE"),
+        "SEM_CONTATO": ("ATIVO", None),
         "SENHA_INVALIDA": ("VERIFICAR", "SENHA_INVALIDA"),
         "SUBSTITUIDO": ("SUBSTITUIDO", None),
         "TODOS": (None, None),
@@ -53,9 +55,11 @@ def listar():
     if filtro not in filtros:
         filtro = "ATIVO"
     status_registro, status_vencimento = filtros[filtro]
+    status_contato = SEM_CONTATO if filtro == "SEM_CONTATO" else None
     registros = certificados.list_certificados(
         status_registro=status_registro,
         status_vencimento=status_vencimento,
+        status_contato=status_contato,
         busca=busca,
     )
     return render_template(
@@ -87,7 +91,12 @@ def novo():
         flash("O arquivo enviado nao parece ser um certificado .pfx ou .p12 valido.", "danger")
         return redirect(url_for("certificados.novo"))
 
-    telefone_valido = is_telefone_limpo_valido(telefone_limpo)
+    telefone_valido = not telefone_limpo or is_telefone_limpo_valido(telefone_limpo)
+    status_contato = calcular_status_contato(nome_contato, sexo_contato, telefone_limpo)
+
+    if not telefone_valido:
+        flash("Telefone invalido. Use apenas o numero limpo ou deixe em branco para preencher depois.", "danger")
+        return redirect(url_for("certificados.novo"))
     conteudo = arquivo.read()
     arquivo.seek(0)
     senha_criptografada = criptografar_senha(senha)
@@ -100,7 +109,6 @@ def novo():
         dados_certificado = ler_pfx(conteudo, senha)
         status_vencimento = calcular_status(
             dados_certificado.get("data_validade"),
-            telefone_valido=telefone_valido,
             essencial_ok=bool(dados_certificado.get("subject")),
         )
         if not dados_certificado.get("cnpj_cpf"):
@@ -152,6 +160,7 @@ def novo():
             "status": status_vencimento,
             "status_registro": status_registro,
             "status_vencimento": status_vencimento,
+            "status_contato": status_contato,
             "substituido_por_id": substituido_por_id,
             "substituido_em": substituido_em,
             "arquivo_arquivado_em": None,
@@ -212,7 +221,7 @@ def novo():
         flash(
             "Atencao: certificado salvo com pendencia de contato: "
             + ", ".join(pendencias_contato)
-            + ". Complete depois pelo filtro Sem telefone ou pela conferencia operacional.",
+            + ". Complete depois pelo filtro Sem contato ou pela conferencia operacional.",
             "warning",
         )
     return redirect(url_for("certificados.detalhe", certificado_id=certificado_id))

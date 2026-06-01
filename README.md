@@ -188,7 +188,7 @@ Se a senha estiver errada ou o arquivo nao for um `.pfx` valido, o sistema nao d
 
 Use apenas o numero sem DDD, sem `+55`, sem espacos, sem tracos, sem parenteses e sem letras. Exemplo aceito: `916031398`.
 
-O telefone pode ficar em branco quando o responsavel ainda nao foi identificado. Nesse caso, o certificado fica cadastrado e aparece no filtro `Sem telefone` para completar depois.
+Nome, sexo do contato e telefone podem ficar em branco quando o responsavel ainda nao foi identificado. Nesse caso, o certificado fica cadastrado e aparece no filtro `Sem contato` para completar depois.
 
 Exemplos rejeitados:
 
@@ -217,8 +217,12 @@ Status de vencimento:
 - `VENCE_EM_15_DIAS`: validade entre hoje e 15 dias, incluindo certificados que vencem hoje.
 - `VALIDO`: validade acima de 15 dias.
 - `SENHA_INVALIDA`: senha nao abre o `.pfx`.
-- `SEM_TELEFONE`: telefone vazio ou invalido.
 - `VERIFICAR`: informacao essencial ausente.
+
+Status de contato:
+
+- `COM_CONTATO`: nome, sexo do contato e telefone limpo preenchidos.
+- `SEM_CONTATO`: falta nome do contato, sexo do contato ou telefone limpo.
 
 ## Substituicao por CNPJ/CPF
 
@@ -241,7 +245,7 @@ A tela de certificados abre em `Ativos` por padrao. Use os filtros rapidos para 
 - `Vencem em 15 dias`: ativos que precisam de renovacao imediata.
 - `Validos`: ativos com mais de 15 dias de validade.
 - `Verificar`: registros que precisam de revisao manual.
-- `Sem telefone`: ativos sem telefone limpo valido.
+- `Sem contato`: ativos com nome do contato, sexo do contato ou telefone limpo pendente.
 - `Senha invalida`: registros cujo `.pfx` nao abriu com a senha informada.
 - `Substituidos`: historico de certificados trocados por versoes mais novas.
 - `Todos`: visao completa para conferencia.

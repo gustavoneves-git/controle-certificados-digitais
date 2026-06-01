@@ -233,7 +233,7 @@ def test_upload_aceita_extensao_p12(tmp_path, monkeypatch):
     assert certificado["cnpj_cpf"] == "12345678000195"
 
 
-def test_upload_sem_dados_de_contato_fica_pendente_sem_telefone(tmp_path, monkeypatch):
+def test_upload_sem_dados_de_contato_mantem_vencimento_e_marca_sem_contato(tmp_path, monkeypatch):
     app = _app(tmp_path, monkeypatch)
     client = app.test_client()
 
@@ -260,10 +260,13 @@ def test_upload_sem_dados_de_contato_fica_pendente_sem_telefone(tmp_path, monkey
     assert certificado["nome_contato"] == ""
     assert certificado["sexo_contato"] == ""
     assert certificado["telefone_limpo"] == ""
-    assert certificado["status_vencimento"] == "SEM_TELEFONE"
+    assert certificado["status_vencimento"] == "VALIDO"
+    assert certificado["status_contato"] == "SEM_CONTATO"
 
-    lista = client.get("/certificados/?filtro=SEM_TELEFONE")
+    lista = client.get("/certificados/?filtro=SEM_CONTATO")
     assert f'/certificados/{certificado["id"]}'.encode() in lista.data
+    assert b"VALIDO" in lista.data
+    assert b"SEM_CONTATO" in lista.data
 
 
 def test_primeiro_certificado_de_documento_fica_ativo(tmp_path, monkeypatch):
@@ -444,7 +447,7 @@ def test_dashboard_tem_cards_operacionais_clicaveis(tmp_path, monkeypatch):
     assert b"Ativos" in response.data
     assert b"Verificar" in response.data
     assert "Senha inválida".encode() in response.data
-    assert b"Sem telefone" in response.data
+    assert b"Sem contato" in response.data
     assert "Substituídos".encode() in response.data
     assert b"/certificados/?filtro=VENCIDO" in response.data
     assert b"/certificados/?filtro=SUBSTITUIDO" in response.data

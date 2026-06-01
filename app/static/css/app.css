@@ -112,7 +112,8 @@ body {
 
 .status-cell { width: 84px; }
 .registro-cell { width: 78px; }
-.nome-cell { width: 164px; }
+.contato-status-cell { width: 96px; }
+.nome-cell { width: 148px; }
 .documento-cell { width: 138px; }
 .tipo-cell { width: 52px; }
 .contato-cell { width: 112px; }
