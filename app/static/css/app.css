@@ -65,6 +65,11 @@ body {
     padding: 22px;
 }
 
+.form-panel,
+.form-panel * {
+    min-width: 0;
+}
+
 .filter-panel {
     align-items: center;
     background: #fff;
@@ -250,6 +255,7 @@ body {
     background: #fff;
     border: 1px solid #d9dee5;
     border-radius: 8px;
+    min-width: 0;
     padding: 14px;
 }
 
@@ -267,6 +273,15 @@ body {
     display: block;
     margin-top: 4px;
     overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+.form-panel dd,
+.form-panel p,
+.form-panel strong,
+.form-panel span {
+    overflow-wrap: anywhere;
+    word-break: break-word;
 }
 
 .audit-list {
