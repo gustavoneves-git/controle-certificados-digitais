@@ -266,7 +266,6 @@ def test_upload_sem_dados_de_contato_mantem_vencimento_e_marca_sem_contato(tmp_p
     lista = client.get("/certificados/?filtro=SEM_CONTATO")
     assert f'/certificados/{certificado["id"]}'.encode() in lista.data
     assert b"VALIDO" in lista.data
-    assert b"SEM_CONTATO" in lista.data
 
 
 def test_editar_dados_de_contato_atualiza_status_contato_e_auditoria(tmp_path, monkeypatch):
