@@ -125,6 +125,31 @@ def registrar_arquivo_removido(certificado_id):
     db.commit()
 
 
+def update_dados_contato(certificado_id, data):
+    db = get_db()
+    db.execute(
+        """
+        UPDATE certificados
+        SET nome_contato = ?,
+            sexo_contato = ?,
+            telefone_limpo = ?,
+            observacao = ?,
+            status_contato = ?,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = ?
+        """,
+        (
+            data.get("nome_contato"),
+            data.get("sexo_contato"),
+            data.get("telefone_limpo"),
+            data.get("observacao"),
+            data.get("status_contato"),
+            certificado_id,
+        ),
+    )
+    db.commit()
+
+
 def delete_certificado(certificado_id):
     db = get_db()
     db.execute("DELETE FROM mensagens WHERE certificado_id = ?", (certificado_id,))

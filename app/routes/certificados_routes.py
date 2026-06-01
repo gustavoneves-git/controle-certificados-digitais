@@ -243,6 +243,49 @@ def detalhe(certificado_id):
     )
 
 
+@certificados_bp.route("/<int:certificado_id>/editar", methods=["GET", "POST"])
+def editar(certificado_id):
+    certificado = certificados.get_certificado(certificado_id)
+    if certificado is None:
+        flash("Certificado nao encontrado.", "warning")
+        return redirect(url_for("certificados.listar"))
+
+    if request.method == "GET":
+        return render_template("editar_certificado.html", certificado=certificado)
+
+    nome_contato = request.form.get("nome_contato", "").strip()
+    sexo_contato = request.form.get("sexo_contato", "").strip().upper()
+    telefone_limpo = request.form.get("telefone_limpo", "").strip()
+    observacao = request.form.get("observacao", "").strip()
+
+    if sexo_contato not in {"", "HOMEM", "MULHER"}:
+        sexo_contato = ""
+    if telefone_limpo and not is_telefone_limpo_valido(telefone_limpo):
+        flash("Telefone invalido. Use apenas o numero limpo ou deixe em branco.", "danger")
+        return redirect(url_for("certificados.editar", certificado_id=certificado_id))
+
+    status_contato = calcular_status_contato(nome_contato, sexo_contato, telefone_limpo)
+    certificados.update_dados_contato(
+        certificado_id,
+        {
+            "nome_contato": nome_contato,
+            "sexo_contato": sexo_contato,
+            "telefone_limpo": telefone_limpo,
+            "observacao": observacao,
+            "status_contato": status_contato,
+        },
+    )
+    auditoria.registrar_evento(
+        certificado_id,
+        "DADOS_CONTATO_ATUALIZADOS",
+        "Dados de contato do certificado atualizados manualmente.",
+    )
+    flash("Dados de contato atualizados.", "success")
+    if status_contato == SEM_CONTATO:
+        flash("Atencao: ainda existem pendencias de contato neste certificado.", "warning")
+    return redirect(url_for("certificados.detalhe", certificado_id=certificado_id))
+
+
 @certificados_bp.route("/<int:certificado_id>/download")
 def download(certificado_id):
     certificado = certificados.get_certificado(certificado_id)

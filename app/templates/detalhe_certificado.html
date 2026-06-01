@@ -9,6 +9,7 @@
         <span class="badge text-bg-{{ status_class(certificado.status_contato) }}">{{ certificado.status_contato or "COM_CONTATO" }}</span>
     </div>
     <div class="d-flex gap-2">
+        <a class="btn btn-outline-primary" href="{{ url_for('certificados.editar', certificado_id=certificado.id) }}">Editar contato</a>
         <a class="btn btn-outline-secondary" href="{{ url_for('certificados.download', certificado_id=certificado.id) }}">Baixar .pfx</a>
     </div>
 </div>

@@ -269,6 +269,52 @@ def test_upload_sem_dados_de_contato_mantem_vencimento_e_marca_sem_contato(tmp_p
     assert b"SEM_CONTATO" in lista.data
 
 
+def test_editar_dados_de_contato_atualiza_status_contato_e_auditoria(tmp_path, monkeypatch):
+    app = _app(tmp_path, monkeypatch)
+    client = app.test_client()
+
+    client.post(
+        "/certificados/novo",
+        data={
+            "arquivo": (io.BytesIO(_pfx_bytes()), "cliente.pfx"),
+            "senha": "123456",
+            "nome_contato": "",
+            "sexo_contato": "",
+            "telefone_limpo": "",
+            "observacao": "",
+        },
+        content_type="multipart/form-data",
+    )
+    certificado = _db_rows(app.config["DATABASE_PATH"], "certificados")[0]
+
+    response_get = client.get(f"/certificados/{certificado['id']}/editar")
+    assert response_get.status_code == 200
+    assert b"Editar contato" in response_get.data
+
+    response_post = client.post(
+        f"/certificados/{certificado['id']}/editar",
+        data={
+            "nome_contato": "Jose Rubens",
+            "sexo_contato": "HOMEM",
+            "telefone_limpo": "916031398",
+            "observacao": "Responsavel confirmado.",
+        },
+        follow_redirects=True,
+    )
+
+    assert response_post.status_code == 200
+    atualizado = _db_rows(app.config["DATABASE_PATH"], "certificados")[0]
+    assert atualizado["nome_contato"] == "Jose Rubens"
+    assert atualizado["sexo_contato"] == "HOMEM"
+    assert atualizado["telefone_limpo"] == "916031398"
+    assert atualizado["status_contato"] == "COM_CONTATO"
+    eventos = [
+        row["tipo_evento"]
+        for row in _db_rows(app.config["DATABASE_PATH"], "eventos_auditoria")
+    ]
+    assert "DADOS_CONTATO_ATUALIZADOS" in eventos
+
+
 def test_primeiro_certificado_de_documento_fica_ativo(tmp_path, monkeypatch):
     app = _app(tmp_path, monkeypatch)
     client = app.test_client()

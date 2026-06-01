@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="content-narrow">
+    <div class="mb-4">
+        <h1 class="h3 mb-1">Editar contato</h1>
+        <p class="text-secondary mb-0">{{ certificado.nome_extraido or certificado.nome_arquivo_original }}</p>
+    </div>
+
+    <form method="post" class="form-panel" data-phone-form>
+        <div class="mb-3">
+            <label for="nome_contato" class="form-label">Nome do contato/cliente</label>
+            <input class="form-control" type="text" id="nome_contato" name="nome_contato" value="{{ certificado.nome_contato or '' }}">
+        </div>
+        <div class="mb-3">
+            <label for="sexo_contato" class="form-label">Sexo do contato</label>
+            <select class="form-select" id="sexo_contato" name="sexo_contato">
+                <option value="" {{ 'selected' if not certificado.sexo_contato else '' }}>Nao informado</option>
+                <option value="HOMEM" {{ 'selected' if certificado.sexo_contato == 'HOMEM' else '' }}>Homem</option>
+                <option value="MULHER" {{ 'selected' if certificado.sexo_contato == 'MULHER' else '' }}>Mulher</option>
+            </select>
+            <div class="form-text">Usado apenas para gerar o tratamento da mensagem: Sr. ou Sra.</div>
+        </div>
+        <div class="mb-3">
+            <label for="telefone_limpo" class="form-label">Telefone limpo</label>
+            <input class="form-control" type="text" id="telefone_limpo" name="telefone_limpo" inputmode="numeric" value="{{ certificado.telefone_limpo or '' }}" data-phone-input>
+            <div class="form-text">Opcional. Se preencher, digite apenas o numero usado na busca do Messenger. Exemplo: 916031398.</div>
+        </div>
+        <div class="mb-4">
+            <label for="observacao" class="form-label">Observacao</label>
+            <textarea class="form-control" id="observacao" name="observacao" rows="3">{{ certificado.observacao or '' }}</textarea>
+        </div>
+        <div class="d-flex gap-2">
+            <button class="btn btn-primary" type="submit" data-save-button>Salvar alterações</button>
+            <a class="btn btn-outline-secondary" href="{{ url_for('certificados.detalhe', certificado_id=certificado.id) }}">Cancelar</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

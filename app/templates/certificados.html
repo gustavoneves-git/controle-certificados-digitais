@@ -93,6 +93,7 @@
                         <form method="post" action="{{ url_for('mensagens.gerar', certificado_id=cert.id) }}">
                             <button class="btn btn-sm {{ 'btn-outline-secondary' if cert.status_registro == 'SUBSTITUIDO' else 'btn-outline-success' }}" type="submit" {% if not cert.data_validade %}disabled{% endif %}>Gerar mensagem</button>
                         </form>
+                        <a class="btn btn-sm btn-outline-primary" href="{{ url_for('certificados.editar', certificado_id=cert.id) }}">Editar</a>
                         <form method="post" action="{{ url_for('certificados.excluir', certificado_id=cert.id) }}" onsubmit="return confirm('Excluir este certificado e remover o arquivo .pfx vinculado? Esta ação não pode ser desfeita.');">
                             <button class="btn btn-sm btn-outline-danger" type="submit">Excluir</button>
                         </form>
