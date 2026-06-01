@@ -155,6 +155,7 @@ def test_fluxo_sensivel_registra_auditoria_e_nao_cacheia_senha(tmp_path, monkeyp
     assert b"CERTIFICADO_PFX" in detalhe_response.data
     assert b"Documento extraido" in detalhe_response.data
     assert b"Status calculado" in detalhe_response.data
+    assert b"Excluir empresa" in detalhe_response.data
 
     senha_response = client.post(f"/certificados/{certificado_id}/senha")
     assert senha_response.status_code == 200

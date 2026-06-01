@@ -234,6 +234,18 @@ body {
     gap: 12px;
 }
 
+.detail-actions {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: flex-end;
+}
+
+.detail-actions form {
+    margin: 0;
+}
+
 .detail-grid div {
     background: #fff;
     border: 1px solid #d9dee5;
@@ -371,5 +383,17 @@ body {
     .cert-mobile-list {
         display: grid;
         gap: 10px;
+    }
+
+    .detail-actions {
+        align-items: stretch;
+        justify-content: flex-start;
+        margin-top: 12px;
+        width: 100%;
+    }
+
+    .detail-actions .btn,
+    .detail-actions form {
+        width: 100%;
     }
 }
