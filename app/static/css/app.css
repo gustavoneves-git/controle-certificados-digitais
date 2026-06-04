@@ -88,6 +88,74 @@ body {
     flex: 1 1 auto;
 }
 
+.quick-filter {
+    background: #fff;
+    border: 1px solid #0d6efd;
+    border-radius: 6px;
+    color: #0d6efd;
+    font-size: 0.875rem;
+    line-height: 1.2;
+    padding: 7px 11px;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.quick-filter:hover,
+.quick-filter.active {
+    color: #fff;
+}
+
+.quick-filter-ativo {
+    border-color: #0d6efd;
+    color: #0d6efd;
+}
+
+.quick-filter-ativo:hover,
+.quick-filter-ativo.active {
+    background: #0d6efd;
+}
+
+.quick-filter-vencido {
+    border-color: #dc3545;
+    color: #b02a37;
+}
+
+.quick-filter-vencido:hover,
+.quick-filter-vencido.active {
+    background: #dc3545;
+}
+
+.quick-filter-vence_em_15_dias {
+    border-color: #ffc107;
+    color: #8a6400;
+}
+
+.quick-filter-vence_em_15_dias:hover,
+.quick-filter-vence_em_15_dias.active {
+    background: #ffc107;
+    color: #1f2933;
+}
+
+.quick-filter-valido {
+    border-color: #198754;
+    color: #146c43;
+}
+
+.quick-filter-valido:hover,
+.quick-filter-valido.active {
+    background: #198754;
+}
+
+.quick-filter-todos {
+    border-color: #6c757d;
+    color: #4b5563;
+}
+
+.quick-filter-todos:hover,
+.quick-filter-todos.active {
+    background: #6c757d;
+}
+
 .type-toggle {
     background: #eef2f6;
     border: 1px solid #d3dae3;

@@ -16,12 +16,9 @@
             ('VENCIDO', 'Vencidos'),
             ('VENCE_EM_15_DIAS', 'Vencem em 15 dias'),
             ('VALIDO', 'Válidos'),
-            ('SEM_CONTATO', 'Sem contato'),
-            ('SENHA_INVALIDA', 'Senha inválida'),
-            ('SUBSTITUIDO', 'Substituídos'),
             ('TODOS', 'Todos')
         ] %}
-            <a class="btn btn-sm {{ 'btn-primary' if filtro == key else 'btn-outline-primary' }}" href="{{ url_for('certificados.listar', filtro=key, tipo=tipo, busca=busca) }}">{{ label }}</a>
+            <a class="quick-filter quick-filter-{{ key|lower }} {{ 'active' if filtro == key else '' }}" href="{{ url_for('certificados.listar', filtro=key, tipo=tipo, busca=busca) }}">{{ label }}</a>
         {% endfor %}
     </div>
     <div class="type-toggle" aria-label="Filtro por tipo de certificado">
