@@ -25,7 +25,7 @@ def ler_pfx(conteudo, senha):
     subject = certificate.subject.rfc4514_string()
     issuer = certificate.issuer.rfc4514_string()
     texto_busca = _texto_para_busca(certificate, subject, issuer)
-    cnpj_cpf, tipo_documento = extrair_documento(texto_busca)
+    cnpj_cpf, tipo_documento = extrair_documento_preferindo_cn(certificate, texto_busca)
     nome_extraido = extrair_nome(certificate)
 
     return {
@@ -61,6 +61,14 @@ def extrair_documento(texto):
                     if len(candidato) == tamanho:
                         return candidato, tipo
     return None, "DESCONHECIDO"
+
+
+def extrair_documento_preferindo_cn(certificate, texto_fallback):
+    for valor_cn in _valores_subject(certificate, NameOID.COMMON_NAME):
+        documento, tipo = extrair_documento(valor_cn)
+        if documento:
+            return documento, tipo
+    return extrair_documento(texto_fallback)
 
 
 def extrair_nome(certificate):
