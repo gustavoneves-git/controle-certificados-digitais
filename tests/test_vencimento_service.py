@@ -32,7 +32,7 @@ def test_calcular_status_com_datetime_e_timezone():
 
 
 def test_calcular_status_contato():
-    assert calcular_status_contato("Maria", "MULHER", "916031398") == "COM_CONTATO"
-    assert calcular_status_contato("", "MULHER", "916031398") == "SEM_CONTATO"
-    assert calcular_status_contato("Maria", "", "916031398") == "SEM_CONTATO"
+    assert calcular_status_contato("Maria", "MULHER", "+55 47 91603-1398") == "COM_CONTATO"
+    assert calcular_status_contato("", "MULHER", "+55 47 91603-1398") == "SEM_CONTATO"
+    assert calcular_status_contato("Maria", "", "+55 47 91603-1398") == "SEM_CONTATO"
     assert calcular_status_contato("Maria", "MULHER", "") == "SEM_CONTATO"

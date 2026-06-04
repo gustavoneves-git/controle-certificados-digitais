@@ -22,7 +22,11 @@ from app.services.certificado_storage_service import (
     salvar_certificado,
 )
 from app.services.crypto_service import criptografar_senha, descriptografar_senha
-from app.services.telefone_service import TELEFONE_INSTRUCAO, is_telefone_limpo_valido
+from app.services.telefone_service import (
+    TELEFONE_INSTRUCAO,
+    is_telefone_limpo_valido,
+    normalizar_telefone,
+)
 from app.services.vencimento_service import (
     SENHA_INVALIDA,
     SEM_CONTATO,
@@ -81,7 +85,9 @@ def novo():
     senha = request.form.get("senha", "")
     nome_contato = request.form.get("nome_contato", "").strip()
     sexo_contato = request.form.get("sexo_contato", "").strip().upper()
-    telefone_limpo = request.form.get("telefone_limpo", "").strip()
+    email_contato = request.form.get("email_contato", "").strip()
+    documento_identificacao = request.form.get("documento_identificacao", "").strip()
+    telefone_limpo = normalizar_telefone(request.form.get("telefone_limpo", "").strip())
     observacao = request.form.get("observacao", "").strip()
 
     if sexo_contato not in {"", "HOMEM", "MULHER"}:
@@ -95,7 +101,7 @@ def novo():
     status_contato = calcular_status_contato(nome_contato, sexo_contato, telefone_limpo)
 
     if not telefone_valido:
-        flash("Telefone invalido. Use apenas o numero limpo ou deixe em branco para preencher depois.", "danger")
+        flash("Telefone invalido. Use o formato +55 11 99999-9999 ou deixe em branco para preencher depois.", "danger")
         return redirect(url_for("certificados.novo"))
     conteudo = arquivo.read()
     arquivo.seek(0)
@@ -157,6 +163,8 @@ def novo():
             "senha_criptografada": senha_criptografada,
             "nome_contato": nome_contato,
             "sexo_contato": sexo_contato,
+            "email_contato": email_contato,
+            "documento_identificacao": documento_identificacao,
             "telefone_limpo": telefone_limpo,
             "observacao": observacao,
             "status": status_vencimento,
@@ -218,7 +226,7 @@ def novo():
     if not sexo_contato:
         pendencias_contato.append("sexo do contato")
     if not telefone_limpo:
-        pendencias_contato.append("telefone limpo")
+        pendencias_contato.append("telefone")
     if pendencias_contato:
         flash(
             "Atencao: certificado salvo com pendencia de contato: "
@@ -257,32 +265,139 @@ def editar(certificado_id):
 
     nome_contato = request.form.get("nome_contato", "").strip()
     sexo_contato = request.form.get("sexo_contato", "").strip().upper()
-    telefone_limpo = request.form.get("telefone_limpo", "").strip()
+    email_contato = request.form.get("email_contato", "").strip()
+    documento_identificacao = request.form.get("documento_identificacao", "").strip()
+    telefone_limpo = normalizar_telefone(request.form.get("telefone_limpo", "").strip())
     observacao = request.form.get("observacao", "").strip()
+    senha = request.form.get("senha", "")
+    arquivo = request.files.get("arquivo")
 
     if sexo_contato not in {"", "HOMEM", "MULHER"}:
         sexo_contato = ""
     if telefone_limpo and not is_telefone_limpo_valido(telefone_limpo):
-        flash("Telefone invalido. Use apenas o numero limpo ou deixe em branco.", "danger")
+        flash("Telefone invalido. Use o formato +55 11 99999-9999 ou deixe em branco.", "danger")
         return redirect(url_for("certificados.editar", certificado_id=certificado_id))
 
     status_contato = calcular_status_contato(nome_contato, sexo_contato, telefone_limpo)
-    certificados.update_dados_contato(
-        certificado_id,
-        {
+
+    troca_certificado = arquivo is not None and arquivo.filename
+    if troca_certificado:
+        if not extensao_valida(arquivo.filename):
+            flash("O arquivo enviado nao parece ser um certificado .pfx ou .p12 valido.", "danger")
+            return redirect(url_for("certificados.editar", certificado_id=certificado_id))
+        if not senha:
+            flash("Informe a senha do novo certificado para validar a substituicao.", "danger")
+            return redirect(url_for("certificados.editar", certificado_id=certificado_id))
+        conteudo = arquivo.read()
+        arquivo.seek(0)
+        try:
+            dados_certificado = ler_pfx(conteudo, senha)
+        except SenhaCertificadoInvalida:
+            auditoria.registrar_evento(
+                certificado_id,
+                "SENHA_INVALIDA",
+                "Senha invalida ao tentar substituir o certificado pela tela de edicao.",
+            )
+            flash("Nao foi possivel abrir o certificado. Verifique se a senha esta correta.", "danger")
+            return redirect(url_for("certificados.editar", certificado_id=certificado_id))
+
+        documento_atual = certificado["cnpj_cpf"]
+        documento_novo = dados_certificado.get("cnpj_cpf")
+        if documento_atual and documento_novo and documento_atual != documento_novo:
+            auditoria.registrar_evento(
+                certificado_id,
+                "TENTATIVA_SUBSTITUICAO_BLOQUEADA",
+                "Substituicao bloqueada porque o CNPJ/CPF do novo certificado e diferente.",
+            )
+            flash("O CNPJ/CPF do novo certificado e diferente deste cadastro. Revise antes de substituir.", "danger")
+            return redirect(url_for("certificados.editar", certificado_id=certificado_id))
+
+        validade_nova = parse_date(dados_certificado.get("data_validade"))
+        validade_atual = parse_date(certificado["data_validade"])
+        if validade_atual and validade_nova and validade_nova <= validade_atual:
+            auditoria.registrar_evento(
+                certificado_id,
+                "TENTATIVA_SUBSTITUICAO_BLOQUEADA",
+                "Substituicao bloqueada porque a validade do novo certificado e menor ou igual a atual.",
+            )
+            flash("O novo certificado nao tem validade maior que o atual. Revise antes de substituir.", "warning")
+            return redirect(url_for("certificados.editar", certificado_id=certificado_id))
+
+        status_vencimento = calcular_status(
+            dados_certificado.get("data_validade"),
+            essencial_ok=bool(dados_certificado.get("subject")),
+        )
+        status_registro = certificado["status_registro"]
+        if status_registro != "SUBSTITUIDO":
+            status_registro = "ATIVO" if dados_certificado.get("cnpj_cpf") else "VERIFICAR"
+        if not dados_certificado.get("cnpj_cpf"):
+            status_vencimento = VERIFICAR
+
+        caminho = salvar_certificado(arquivo, current_app.config["STORAGE_CERTIFICADOS"])
+        caminho_arquivado = arquivar_certificado(
+            certificado["caminho_arquivo"],
+            current_app.config["STORAGE_CERTIFICADOS"],
+            current_app.config["STORAGE_CERTIFICADOS_ARQUIVADOS"],
+        )
+
+        certificados.update_certificado(
+            certificado_id,
+            {
+                "nome_arquivo_original": arquivo.filename,
+                "caminho_arquivo": caminho,
+                "senha_criptografada": criptografar_senha(senha),
+                "nome_contato": nome_contato,
+                "sexo_contato": sexo_contato,
+                "email_contato": email_contato,
+                "documento_identificacao": documento_identificacao,
+                "telefone_limpo": telefone_limpo,
+                "observacao": observacao,
+                "status": status_vencimento,
+                "status_registro": status_registro,
+                "status_vencimento": status_vencimento,
+                "status_contato": status_contato,
+                **dados_certificado,
+            },
+        )
+        auditoria.registrar_evento(
+            certificado_id,
+            "CERTIFICADO_ATUALIZADO",
+            "Certificado substituido manualmente pela tela de edicao.",
+        )
+        auditoria.registrar_evento(
+            certificado_id,
+            "CERTIFICADO_ARQUIVO_ARQUIVADO" if caminho_arquivado else "ARQUIVO_CERTIFICADO_NAO_ENCONTRADO",
+            "Arquivo .pfx anterior arquivado antes da substituicao."
+            if caminho_arquivado
+            else "Arquivo .pfx anterior nao foi encontrado para arquivamento.",
+        )
+        flash("Certificado atualizado com sucesso.", "success")
+    else:
+        data = {
             "nome_contato": nome_contato,
             "sexo_contato": sexo_contato,
+            "email_contato": email_contato,
+            "documento_identificacao": documento_identificacao,
             "telefone_limpo": telefone_limpo,
             "observacao": observacao,
             "status_contato": status_contato,
-        },
-    )
+        }
+        if senha:
+            data["senha_criptografada"] = criptografar_senha(senha)
+            certificados.update_senha(certificado_id, data["senha_criptografada"])
+            auditoria.registrar_evento(
+                certificado_id,
+                "SENHA_CERTIFICADO_ATUALIZADA",
+                "Senha do certificado atualizada manualmente pela tela de edicao.",
+            )
+        certificados.update_dados_contato(certificado_id, data)
+        flash("Dados atualizados.", "success")
+
     auditoria.registrar_evento(
         certificado_id,
         "DADOS_CONTATO_ATUALIZADOS",
-        "Dados de contato do certificado atualizados manualmente.",
+        "Dados de contato e emissao do certificado atualizados manualmente.",
     )
-    flash("Dados de contato atualizados.", "success")
     if status_contato == SEM_CONTATO:
         flash("Atencao: ainda existem pendencias de contato neste certificado.", "warning")
     return redirect(url_for("certificados.detalhe", certificado_id=certificado_id))

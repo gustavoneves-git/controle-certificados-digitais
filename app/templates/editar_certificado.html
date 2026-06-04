@@ -3,11 +3,27 @@
 {% block content %}
 <div class="content-narrow">
     <div class="mb-4">
-        <h1 class="h3 mb-1">Editar contato</h1>
+        <h1 class="h3 mb-1">Editar certificado</h1>
         <p class="text-secondary mb-0">{{ certificado.nome_extraido or certificado.nome_arquivo_original }}</p>
     </div>
 
-    <form method="post" class="form-panel" data-phone-form>
+    <form method="post" enctype="multipart/form-data" class="form-panel" data-phone-form>
+        <h2 class="h5 mb-3">Substituir certificado</h2>
+        <div class="upload-zone mb-3">
+            <label for="arquivo" class="form-label">Novo arquivo .pfx ou .p12</label>
+            <input class="form-control" type="file" id="arquivo" name="arquivo" accept=".pfx,.p12">
+            <div class="form-text">Opcional. Se enviar um novo arquivo, a senha abaixo sera obrigatoria e o arquivo antigo sera arquivado.</div>
+        </div>
+        <div class="mb-4">
+            <label for="senha" class="form-label">Nova senha do certificado</label>
+            <div class="input-group">
+                <input class="form-control" type="password" id="senha" name="senha" autocomplete="off" data-local-password>
+                <button class="btn btn-outline-secondary" type="button" data-toggle-local-password>Mostrar</button>
+            </div>
+            <div class="form-text">Preencha apenas para trocar a senha salva ou quando enviar um novo certificado.</div>
+        </div>
+
+        <h2 class="h5 mb-3">Dados do contato</h2>
         <div class="mb-3">
             <label for="nome_contato" class="form-label">Nome do contato/cliente</label>
             <input class="form-control" type="text" id="nome_contato" name="nome_contato" value="{{ certificado.nome_contato or '' }}">
@@ -22,9 +38,19 @@
             <div class="form-text">Usado apenas para gerar o tratamento da mensagem: Sr. ou Sra.</div>
         </div>
         <div class="mb-3">
-            <label for="telefone_limpo" class="form-label">Telefone limpo</label>
-            <input class="form-control" type="text" id="telefone_limpo" name="telefone_limpo" inputmode="numeric" value="{{ certificado.telefone_limpo or '' }}" data-phone-input>
-            <div class="form-text">Opcional. Se preencher, digite apenas o numero usado na busca do Messenger. Exemplo: 916031398.</div>
+            <label for="email_contato" class="form-label">E-mail do contato</label>
+            <input class="form-control" type="email" id="email_contato" name="email_contato" value="{{ certificado.email_contato or '' }}">
+            <div class="form-text">Opcional. Ajuda na emissao ou renovacao do certificado.</div>
+        </div>
+        <div class="mb-3">
+            <label for="documento_identificacao" class="form-label">RG ou CNH</label>
+            <input class="form-control" type="text" id="documento_identificacao" name="documento_identificacao" value="{{ certificado.documento_identificacao or '' }}">
+            <div class="form-text">Opcional. Preencha somente com documento confirmado pelo escritorio.</div>
+        </div>
+        <div class="mb-3">
+            <label for="telefone_limpo" class="form-label">Telefone</label>
+            <input class="form-control" type="text" id="telefone_limpo" name="telefone_limpo" inputmode="tel" value="{{ certificado.telefone_limpo|telefone_br if certificado.telefone_limpo else '' }}" placeholder="+55 11 99999-9999" data-phone-input>
+            <div class="form-text">Opcional. O sistema salva internamente apenas os numeros para busca futura. Exemplo interno: 5511999999999.</div>
         </div>
         <div class="mb-4">
             <label for="observacao" class="form-label">Observacao</label>

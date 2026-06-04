@@ -33,6 +33,8 @@ def init_db():
             responsavel_certificado TEXT,
             nome_contato TEXT,
             sexo_contato TEXT,
+            email_contato TEXT,
+            documento_identificacao TEXT,
             telefone_limpo TEXT,
             observacao TEXT,
             status TEXT NOT NULL,
@@ -87,6 +89,8 @@ def _ensure_certificados_columns(db):
         "sexo_contato": "ALTER TABLE certificados ADD COLUMN sexo_contato TEXT",
         "email_certificado": "ALTER TABLE certificados ADD COLUMN email_certificado TEXT",
         "responsavel_certificado": "ALTER TABLE certificados ADD COLUMN responsavel_certificado TEXT",
+        "email_contato": "ALTER TABLE certificados ADD COLUMN email_contato TEXT",
+        "documento_identificacao": "ALTER TABLE certificados ADD COLUMN documento_identificacao TEXT",
     }
     for column, sql in migrations.items():
         if column not in columns:

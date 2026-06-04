@@ -35,9 +35,19 @@
             <div class="form-text">Usado apenas para gerar o tratamento da mensagem: Sr. ou Sra.</div>
         </div>
         <div class="mb-3">
-            <label for="telefone_limpo" class="form-label">Telefone limpo</label>
-            <input class="form-control" type="text" id="telefone_limpo" name="telefone_limpo" inputmode="numeric" data-phone-input>
-            <div class="form-text">Opcional. Se preencher, digite apenas o numero usado na busca do Messenger. Exemplo: 916031398.</div>
+            <label for="email_contato" class="form-label">E-mail do contato</label>
+            <input class="form-control" type="email" id="email_contato" name="email_contato">
+            <div class="form-text">Opcional. Guarde aqui o e-mail usado quando precisar emitir ou renovar.</div>
+        </div>
+        <div class="mb-3">
+            <label for="documento_identificacao" class="form-label">RG ou CNH</label>
+            <input class="form-control" type="text" id="documento_identificacao" name="documento_identificacao">
+            <div class="form-text">Opcional. Use somente quando o escritorio tiver confirmado o documento do responsavel.</div>
+        </div>
+        <div class="mb-3">
+            <label for="telefone_limpo" class="form-label">Telefone</label>
+            <input class="form-control" type="text" id="telefone_limpo" name="telefone_limpo" inputmode="tel" placeholder="+55 11 99999-9999" data-phone-input>
+            <div class="form-text">Opcional. O sistema salva internamente apenas os numeros para busca futura. Exemplo interno: 5511999999999.</div>
         </div>
         <div class="mb-4">
             <label for="observacao" class="form-label">Observacao</label>

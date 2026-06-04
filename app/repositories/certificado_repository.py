@@ -1,3 +1,5 @@
+import re
+
 from app.repositories.db import get_db
 
 
@@ -20,6 +22,8 @@ def create_certificado(data):
         "responsavel_certificado",
         "nome_contato",
         "sexo_contato",
+        "email_contato",
+        "documento_identificacao",
         "telefone_limpo",
         "observacao",
         "status",
@@ -56,17 +60,22 @@ def list_certificados(status_registro="ATIVO", status_vencimento=None, status_co
         params.append(status_contato)
     if busca:
         termo = f"%{busca.strip()}%"
+        telefone_busca = re.sub(r"\D", "", busca)
+        termo_telefone = f"%{telefone_busca}%" if telefone_busca else termo
         where.append(
             """
             (
                 cnpj_cpf LIKE ?
                 OR nome_extraido LIKE ?
                 OR nome_contato LIKE ?
+                OR email_contato LIKE ?
+                OR documento_identificacao LIKE ?
+                OR telefone_limpo LIKE ?
                 OR telefone_limpo LIKE ?
             )
             """
         )
-        params.extend([termo, termo, termo, termo])
+        params.extend([termo, termo, termo, termo, termo, termo, termo_telefone])
     if where:
         query += " WHERE " + " AND ".join(where)
     query += " ORDER BY data_validade IS NULL, data_validade ASC, id DESC"
@@ -134,6 +143,8 @@ def update_dados_contato(certificado_id, data):
         UPDATE certificados
         SET nome_contato = ?,
             sexo_contato = ?,
+            email_contato = ?,
+            documento_identificacao = ?,
             telefone_limpo = ?,
             observacao = ?,
             status_contato = ?,
@@ -143,11 +154,71 @@ def update_dados_contato(certificado_id, data):
         (
             data.get("nome_contato"),
             data.get("sexo_contato"),
+            data.get("email_contato"),
+            data.get("documento_identificacao"),
             data.get("telefone_limpo"),
             data.get("observacao"),
             data.get("status_contato"),
             certificado_id,
         ),
+    )
+    db.commit()
+
+
+def update_senha(certificado_id, senha_criptografada):
+    db = get_db()
+    db.execute(
+        """
+        UPDATE certificados
+        SET senha_criptografada = ?,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = ?
+        """,
+        (senha_criptografada, certificado_id),
+    )
+    db.commit()
+
+
+def update_certificado(certificado_id, data):
+    fields = [
+        "nome_arquivo_original",
+        "caminho_arquivo",
+        "senha_criptografada",
+        "subject",
+        "issuer",
+        "data_emissao",
+        "data_validade",
+        "thumbprint_sha1",
+        "thumbprint_sha256",
+        "serial_number",
+        "cnpj_cpf",
+        "tipo_documento",
+        "nome_extraido",
+        "email_certificado",
+        "responsavel_certificado",
+        "nome_contato",
+        "sexo_contato",
+        "email_contato",
+        "documento_identificacao",
+        "telefone_limpo",
+        "observacao",
+        "status",
+        "status_registro",
+        "status_vencimento",
+        "status_contato",
+    ]
+    assignments = ", ".join(f"{field} = ?" for field in fields)
+    values = [data.get(field) for field in fields]
+    values.append(certificado_id)
+    db = get_db()
+    db.execute(
+        f"""
+        UPDATE certificados
+        SET {assignments},
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = ?
+        """,
+        values,
     )
     db.commit()
 

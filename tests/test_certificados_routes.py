@@ -69,7 +69,7 @@ def _post_pfx(client, arquivo_path, filename=None, senha=SENHA_TESTE, follow_red
             "arquivo": (io.BytesIO(arquivo_path.read_bytes()), filename or arquivo_path.name),
             "senha": senha,
             "nome_contato": "Maria",
-            "telefone_limpo": "916031398",
+            "telefone_limpo": "+55 47 91603-1398",
             "observacao": "",
         },
         content_type="multipart/form-data",
@@ -93,7 +93,7 @@ def test_upload_invalido_nao_usa_nome_do_arquivo_como_validade(tmp_path, monkeyp
             "arquivo": (io.BytesIO(b"nao e pfx"), "cliente-validade-2099-12-31.pfx"),
             "senha": "123456",
             "nome_contato": "Maria",
-            "telefone_limpo": "916031398",
+            "telefone_limpo": "+55 47 91603-1398",
             "observacao": "",
         },
         content_type="multipart/form-data",
@@ -119,7 +119,7 @@ def test_extensao_invalida_mostra_mensagem_amigavel(tmp_path, monkeypatch):
             "arquivo": (io.BytesIO(b"texto"), "certificado.txt"),
             "senha": "123456",
             "nome_contato": "Maria",
-            "telefone_limpo": "916031398",
+            "telefone_limpo": "+55 47 91603-1398",
             "observacao": "",
         },
         content_type="multipart/form-data",
@@ -141,7 +141,7 @@ def test_fluxo_sensivel_registra_auditoria_e_nao_cacheia_senha(tmp_path, monkeyp
             "arquivo": (io.BytesIO(_pfx_bytes()), "cliente.pfx"),
             "senha": "123456",
             "nome_contato": "Maria",
-            "telefone_limpo": "916031398",
+            "telefone_limpo": "+55 47 91603-1398",
             "observacao": "",
         },
         content_type="multipart/form-data",
@@ -199,7 +199,7 @@ def test_download_funciona_com_caminho_relativo_de_storage(tmp_path, monkeypatch
             "arquivo": (io.BytesIO(_pfx_bytes()), "cliente.pfx"),
             "senha": "123456",
             "nome_contato": "Maria",
-            "telefone_limpo": "916031398",
+            "telefone_limpo": "+55 47 91603-1398",
             "observacao": "",
         },
         content_type="multipart/form-data",
@@ -222,7 +222,7 @@ def test_upload_aceita_extensao_p12(tmp_path, monkeypatch):
             "arquivo": (io.BytesIO(_pfx_bytes()), "cliente.p12"),
             "senha": "123456",
             "nome_contato": "Maria",
-            "telefone_limpo": "916031398",
+            "telefone_limpo": "+55 47 91603-1398",
             "observacao": "",
         },
         content_type="multipart/form-data",
@@ -256,7 +256,7 @@ def test_upload_sem_dados_de_contato_mantem_vencimento_e_marca_sem_contato(tmp_p
     assert b"Atencao: certificado salvo com pendencia de contato" in response.data
     assert b"nome do contato" in response.data
     assert b"sexo do contato" in response.data
-    assert b"telefone limpo" in response.data
+    assert b"telefone" in response.data
     certificado = _db_rows(app.config["DATABASE_PATH"], "certificados")[0]
     assert certificado["nome_contato"] == ""
     assert certificado["sexo_contato"] == ""
@@ -289,14 +289,16 @@ def test_editar_dados_de_contato_atualiza_status_contato_e_auditoria(tmp_path, m
 
     response_get = client.get(f"/certificados/{certificado['id']}/editar")
     assert response_get.status_code == 200
-    assert b"Editar contato" in response_get.data
+    assert b"Editar certificado" in response_get.data
 
     response_post = client.post(
         f"/certificados/{certificado['id']}/editar",
         data={
             "nome_contato": "Jose Rubens",
             "sexo_contato": "HOMEM",
-            "telefone_limpo": "916031398",
+            "email_contato": "jose@example.com",
+            "documento_identificacao": "CNH 123456789",
+            "telefone_limpo": "+55 47 91603-1398",
             "observacao": "Responsavel confirmado.",
         },
         follow_redirects=True,
@@ -306,13 +308,137 @@ def test_editar_dados_de_contato_atualiza_status_contato_e_auditoria(tmp_path, m
     atualizado = _db_rows(app.config["DATABASE_PATH"], "certificados")[0]
     assert atualizado["nome_contato"] == "Jose Rubens"
     assert atualizado["sexo_contato"] == "HOMEM"
-    assert atualizado["telefone_limpo"] == "916031398"
+    assert atualizado["email_contato"] == "jose@example.com"
+    assert atualizado["documento_identificacao"] == "CNH 123456789"
+    assert atualizado["telefone_limpo"] == "5547916031398"
     assert atualizado["status_contato"] == "COM_CONTATO"
     eventos = [
         row["tipo_evento"]
         for row in _db_rows(app.config["DATABASE_PATH"], "eventos_auditoria")
     ]
     assert "DADOS_CONTATO_ATUALIZADOS" in eventos
+
+
+def test_editar_substitui_certificado_do_mesmo_documento_e_arquiva_antigo(tmp_path, monkeypatch):
+    app = _app(tmp_path, monkeypatch)
+    client = app.test_client()
+    base = _gerar_certificados_rota(tmp_path)
+
+    _post_pfx(client, base / "empresa_substituicao_antigo.pfx")
+    certificado = _db_rows(app.config["DATABASE_PATH"], "certificados")[0]
+    caminho_antigo = Path(certificado["caminho_arquivo"])
+    assert caminho_antigo.exists()
+
+    response = client.post(
+        f"/certificados/{certificado['id']}/editar",
+        data={
+            "arquivo": (
+                io.BytesIO((base / "empresa_substituicao_novo.pfx").read_bytes()),
+                "empresa_substituicao_novo.pfx",
+            ),
+            "senha": SENHA_TESTE,
+            "nome_contato": "Maria",
+            "sexo_contato": "MULHER",
+            "email_contato": "maria@example.com",
+            "documento_identificacao": "RG 123456",
+            "telefone_limpo": "+55 47 91603-1398",
+            "observacao": "Certificado renovado.",
+        },
+        content_type="multipart/form-data",
+        follow_redirects=True,
+    )
+
+    assert response.status_code == 200
+    atualizado = _db_rows(app.config["DATABASE_PATH"], "certificados")[0]
+    assert atualizado["id"] == certificado["id"]
+    assert atualizado["status_registro"] == "ATIVO"
+    assert atualizado["cnpj_cpf"] == "44555666000111"
+    assert atualizado["nome_arquivo_original"] == "empresa_substituicao_novo.pfx"
+    assert atualizado["email_contato"] == "maria@example.com"
+    assert atualizado["documento_identificacao"] == "RG 123456"
+    assert atualizado["telefone_limpo"] == "5547916031398"
+    assert not caminho_antigo.exists()
+    assert Path(atualizado["caminho_arquivo"]).exists()
+    assert any(Path(app.config["STORAGE_CERTIFICADOS_ARQUIVADOS"]).iterdir())
+
+    eventos = [
+        row["tipo_evento"]
+        for row in _db_rows(app.config["DATABASE_PATH"], "eventos_auditoria")
+    ]
+    assert "CERTIFICADO_ATUALIZADO" in eventos
+    assert "CERTIFICADO_ARQUIVO_ARQUIVADO" in eventos
+
+
+def test_editar_bloqueia_certificado_de_documento_diferente(tmp_path, monkeypatch):
+    app = _app(tmp_path, monkeypatch)
+    client = app.test_client()
+    base = _gerar_certificados_rota(tmp_path)
+
+    _post_pfx(client, base / "empresa_substituicao_antigo.pfx")
+    certificado = _db_rows(app.config["DATABASE_PATH"], "certificados")[0]
+    caminho_antigo = Path(certificado["caminho_arquivo"])
+
+    response = client.post(
+        f"/certificados/{certificado['id']}/editar",
+        data={
+            "arquivo": (
+                io.BytesIO((base / "empresa_teste_valido.pfx").read_bytes()),
+                "empresa_teste_valido.pfx",
+            ),
+            "senha": SENHA_TESTE,
+            "nome_contato": "Maria",
+            "sexo_contato": "MULHER",
+            "email_contato": "",
+            "documento_identificacao": "",
+            "telefone_limpo": "+55 47 91603-1398",
+            "observacao": "",
+        },
+        content_type="multipart/form-data",
+        follow_redirects=True,
+    )
+
+    assert response.status_code == 200
+    assert b"diferente deste cadastro" in response.data
+    atualizado = _db_rows(app.config["DATABASE_PATH"], "certificados")[0]
+    assert atualizado["nome_arquivo_original"] == certificado["nome_arquivo_original"]
+    assert Path(atualizado["caminho_arquivo"]) == caminho_antigo
+    assert caminho_antigo.exists()
+
+
+def test_editar_bloqueia_certificado_com_validade_menor_ou_igual(tmp_path, monkeypatch):
+    app = _app(tmp_path, monkeypatch)
+    client = app.test_client()
+    base = _gerar_certificados_rota(tmp_path)
+
+    _post_pfx(client, base / "empresa_substituicao_novo.pfx")
+    certificado = _db_rows(app.config["DATABASE_PATH"], "certificados")[0]
+    caminho_atual = Path(certificado["caminho_arquivo"])
+
+    response = client.post(
+        f"/certificados/{certificado['id']}/editar",
+        data={
+            "arquivo": (
+                io.BytesIO((base / "empresa_substituicao_antigo.pfx").read_bytes()),
+                "empresa_substituicao_antigo.pfx",
+            ),
+            "senha": SENHA_TESTE,
+            "nome_contato": "Maria",
+            "sexo_contato": "MULHER",
+            "email_contato": "",
+            "documento_identificacao": "",
+            "telefone_limpo": "+55 47 91603-1398",
+            "observacao": "",
+        },
+        content_type="multipart/form-data",
+        follow_redirects=True,
+    )
+
+    assert response.status_code == 200
+    assert b"validade maior que o atual" in response.data
+    atualizado = _db_rows(app.config["DATABASE_PATH"], "certificados")[0]
+    assert atualizado["nome_arquivo_original"] == certificado["nome_arquivo_original"]
+    assert Path(atualizado["caminho_arquivo"]) == caminho_atual
+    assert caminho_atual.exists()
 
 
 def test_primeiro_certificado_de_documento_fica_ativo(tmp_path, monkeypatch):
@@ -473,8 +599,8 @@ def test_filtros_rapidos_e_busca_da_lista(tmp_path, monkeypatch):
     assert b"EMPRESA TESTE ATENCAO LTDA" in busca_cnpj.data
     assert b"EMPRESA TESTE VENCIDA LTDA" not in busca_cnpj.data
 
-    busca_contato = client.get("/certificados/?filtro=TODOS&busca=916031398")
-    assert busca_contato.data.count(b"916031398") >= 3
+    busca_contato = client.get("/certificados/?filtro=TODOS&busca=5547916031398")
+    assert busca_contato.data.count(b"+55 47 91603-1398") >= 3
 
 
 def test_dashboard_tem_cards_operacionais_clicaveis(tmp_path, monkeypatch):

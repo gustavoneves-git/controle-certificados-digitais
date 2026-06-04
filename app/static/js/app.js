@@ -1,5 +1,17 @@
 function telefoneValido(valor) {
-    return /^\d{8,9}$/.test(valor) && !valor.startsWith("55");
+    const digits = valor.replace(/\D/g, "");
+    return /^\d{12,13}$/.test(digits);
+}
+
+function formatarTelefone(valor) {
+    const digits = valor.replace(/\D/g, "").slice(0, 13);
+    if (digits.length <= 2) return digits ? `+${digits}` : "";
+    if (digits.length <= 4) return `+${digits.slice(0, 2)} ${digits.slice(2)}`;
+    if (digits.length <= 8) {
+        return `+${digits.slice(0, 2)} ${digits.slice(2, 4)} ${digits.slice(4)}`;
+    }
+    const phoneStart = digits.length === 13 ? 9 : 8;
+    return `+${digits.slice(0, 2)} ${digits.slice(2, 4)} ${digits.slice(4, phoneStart)}-${digits.slice(phoneStart)}`;
 }
 
 document.querySelectorAll("[data-phone-form]").forEach((form) => {
@@ -13,7 +25,10 @@ document.querySelectorAll("[data-phone-form]").forEach((form) => {
         input.classList.toggle("is-invalid", !vazio && !ok);
         button.disabled = !vazio && !ok;
     };
-    input.addEventListener("input", update);
+    input.addEventListener("input", () => {
+        input.value = formatarTelefone(input.value);
+        update();
+    });
     update();
 });
 

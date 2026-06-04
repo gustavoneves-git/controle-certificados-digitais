@@ -54,6 +54,7 @@ def create_app(test_config=None):
     app.after_request(no_cache_for_authenticated_pages)
     app.teardown_appcontext(close_db)
     app.jinja_env.filters["date_br"] = date_br
+    app.jinja_env.filters["telefone_br"] = telefone_br
 
     from app.repositories.db import init_db
 
@@ -95,3 +96,9 @@ def date_br(value):
     if isinstance(value, str):
         value = datetime.fromisoformat(value.replace("Z", "+00:00"))
     return value.strftime("%d/%m/%Y")
+
+
+def telefone_br(value):
+    from app.services.telefone_service import formatar_telefone
+
+    return formatar_telefone(value) or "-"

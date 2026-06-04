@@ -4,7 +4,7 @@ Sistema interno Mark 1 para controle manual de certificados digitais de clientes
 
 ## O que a Mark 1 faz
 
-O usuario cadastra um arquivo `.pfx` ou `.p12`, informa a senha, o nome do contato e o telefone limpo usado para busca futura no Messenger/WhatsApp. O sistema le os dados reais do certificado, controla vencimentos, guarda o arquivo para download futuro, protege a senha e gera mensagens manuais para o cliente.
+O usuario cadastra um arquivo `.pfx` ou `.p12`, informa a senha e, quando souber, os dados do contato. O sistema le os dados reais do certificado, controla vencimentos, guarda o arquivo para download futuro, protege a senha e gera mensagens manuais para o cliente.
 
 Funcionalidades entregues:
 
@@ -16,6 +16,7 @@ Funcionalidades entregues:
 - Criptografia da senha do certificado com chave do `.env`.
 - Auditoria de cadastro, senha invalida, senha visualizada, senha copiada, download e mensagem gerada.
 - Lista e detalhe dos certificados.
+- Edicao de contato, e-mail, RG/CNH, senha salva e substituicao manual do arquivo do certificado.
 - Geracao manual de mensagem para cliente.
 - Controle de substituicao: no maximo um certificado `ATIVO` por CNPJ/CPF.
 
@@ -37,8 +38,9 @@ Funcionalidades entregues:
 - Campos opcionais, como e-mail ou titular/responsavel, so aparecem quando existem dentro do certificado.
 - A Mark 1 nao usa OCR, MMC, Outlook, OneDrive, Graph API, Onvio, Messenger, WhatsApp API ou Selenium.
 - CNPJ/CPF extraido do certificado identifica a empresa/certificado.
-- Telefone limpo identifica o canal de atendimento.
+- Telefone identifica o canal de atendimento. Visualmente use `+55 11 99999-9999`; internamente o sistema salva somente numeros, por exemplo `5511999999999`, para busca futura.
 - Nome do contato personaliza a mensagem.
+- E-mail e RG/CNH do contato podem ser guardados para apoiar emissao ou renovacao.
 - Sexo do contato e opcional e usado somente para tratamento na mensagem: `Sr.` para homem e `Sra.` para mulher.
 
 ## Instalacao
@@ -139,9 +141,17 @@ Copie o hash impresso para `APP_LOGIN_PASSWORD_HASH`. A Mark 1 usa login simples
 
 ## Cadastro de certificado
 
-Na tela "Novo certificado", envie um `.pfx` ou `.p12` e informe a senha. Nome do contato, sexo do contato, telefone limpo e observacao sao opcionais. A senha e testada contra o arquivo; se estiver incorreta, o cadastro fica com status `SENHA_INVALIDA` e um evento de auditoria e registrado.
+Na tela "Novo certificado", envie um `.pfx` ou `.p12` e informe a senha. Nome do contato, sexo do contato, e-mail, RG/CNH, telefone e observacao sao opcionais. A senha e testada contra o arquivo; se estiver incorreta, o cadastro fica com status `SENHA_INVALIDA` e um evento de auditoria e registrado.
 
 O campo `Sexo do contato` e opcional. Quando preenchido como homem ou mulher, a mensagem gerada usa `Sr.` ou `Sra.` antes do nome. Se ficar como nao informado, a mensagem usa o nome exatamente como foi cadastrado.
+
+Na tela "Editar certificado", e possivel atualizar dados do contato, e-mail, RG/CNH, telefone, observacao e senha salva. Tambem e possivel enviar um novo `.pfx` ou `.p12` para substituir o certificado daquele cadastro. Nesse caso o sistema:
+
+- exige a senha do novo certificado;
+- abre o arquivo antes de salvar;
+- bloqueia a troca se o CNPJ/CPF do novo certificado for diferente do cadastro atual;
+- arquiva o arquivo anterior em `storage/certificados_arquivados/`;
+- registra auditoria da atualizacao e do arquivamento.
 
 ## Certificados ficticios para desenvolvimento
 
@@ -186,16 +196,18 @@ Na tela de detalhe, valide:
 
 Se a senha estiver errada ou o arquivo nao for um `.pfx` valido, o sistema nao deve quebrar. O registro fica como `SENHA_INVALIDA` e a validade permanece vazia, mesmo que o nome do arquivo contenha alguma data.
 
-## Telefone limpo
+## Telefone
 
-Use apenas o numero sem DDD, sem `+55`, sem espacos, sem tracos, sem parenteses e sem letras. Exemplo aceito: `916031398`.
+Use o telefone em formato familiar, com DDI e DDD. Exemplo aceito: `+55 11 99999-9999`.
+
+Ao salvar, o sistema guarda internamente apenas os numeros, por exemplo `5511999999999`. Esse formato interno sera usado em uma futura busca automatizada, mas a tela continua mostrando o telefone formatado.
 
 Nome, sexo do contato e telefone podem ficar em branco quando o responsavel ainda nao foi identificado. Nesse caso, o certificado fica cadastrado e aparece no filtro `Sem contato` para completar depois.
 
 Exemplos rejeitados:
 
-- `+55916031398`
-- `47916031398`
+- `+55 91603-1398`
+- `47 91603-1398`
 - `91603-1398`
 - `(47)916031398`
 - `91603 1398`

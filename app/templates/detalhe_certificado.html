@@ -59,7 +59,12 @@
             <div class="detail-grid embedded-grid">
                 <div><span>Contato</span><strong>{{ certificado.nome_contato or "-" }}</strong></div>
                 <div><span>Sexo do contato</span><strong>{{ certificado.sexo_contato or "Nao informado" }}</strong></div>
-                <div><span>Telefone limpo</span><strong>{{ certificado.telefone_limpo or "-" }}</strong></div>
+                <div><span>Telefone</span><strong>{{ certificado.telefone_limpo|telefone_br }}</strong></div>
+                <div><span>E-mail</span><strong>{{ certificado.email_contato or "-" }}</strong></div>
+                <div><span>RG ou CNH</span><strong>{{ certificado.documento_identificacao or "-" }}</strong></div>
+                {% if certificado.telefone_limpo %}
+                    <div><span>Telefone para busca futura</span><strong>{{ certificado.telefone_limpo }}</strong></div>
+                {% endif %}
             </div>
         </div>
 

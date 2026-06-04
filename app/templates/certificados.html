@@ -26,7 +26,7 @@
     </div>
     <form class="search-form" method="get" action="{{ url_for('certificados.listar') }}">
         <input type="hidden" name="filtro" value="{{ filtro }}">
-        <input class="form-control form-control-sm" type="search" name="busca" value="{{ busca }}" placeholder="Buscar por CNPJ/CPF, nome, contato ou telefone">
+        <input class="form-control form-control-sm" type="search" name="busca" value="{{ busca }}" placeholder="Buscar por CNPJ/CPF, nome, contato, e-mail, RG/CNH ou telefone">
         <button class="btn btn-sm btn-outline-secondary" type="submit">Buscar</button>
         {% if busca %}
             <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('certificados.listar', filtro=filtro) }}">Limpar</a>
@@ -40,7 +40,7 @@
             <strong>{{ cert.nome_extraido or "-" }}</strong>
             <span>{{ cert.cnpj_cpf or "-" }}</span>
             <span>{{ cert.nome_contato or "-" }}</span>
-            <span>{{ cert.telefone_limpo or "-" }}</span>
+            <span>{{ cert.telefone_limpo|telefone_br }}</span>
             <span class="cert-mobile-status cert-mobile-status-{{ status_class(cert.status_vencimento or cert.status) }}">
                 {{ cert.status_vencimento or cert.status }}{% if cert.data_validade %} · {{ cert.data_validade|date_br }}{% endif %}
             </span>
@@ -76,7 +76,7 @@
                 <td class="documento-cell">{{ cert.cnpj_cpf or "-" }}</td>
                 <td class="tipo-cell">{{ cert.tipo_documento or "-" }}</td>
                 <td class="contato-cell">{{ cert.nome_contato or "-" }}</td>
-                <td class="telefone-cell">{{ cert.telefone_limpo or "-" }}</td>
+                <td class="telefone-cell">{{ cert.telefone_limpo|telefone_br }}</td>
                 <td class="validade-cell">{{ cert.data_validade|date_br }}</td>
                 <td class="dias-cell">{{ dias_para_vencer(cert.data_validade) if cert.data_validade else "-" }}</td>
                 <td class="text-truncate issuer-cell" title="{{ cert.issuer or '' }}">{{ cert.issuer or "-" }}</td>
