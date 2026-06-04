@@ -139,9 +139,8 @@ body {
     overflow-wrap: anywhere;
 }
 
-.status-cell { width: 155px; }
-.registro-cell { width: 78px; }
-.nome-cell { width: 230px; }
+.status-cell { width: 165px; }
+.nome-cell { width: 255px; }
 .documento-cell { width: 138px; }
 .tipo-cell { width: 74px; }
 .contato-cell { width: 145px; }
@@ -204,6 +203,22 @@ body {
     padding: 6px 9px;
     text-transform: uppercase;
     width: fit-content;
+}
+
+.cert-registro-pill {
+    background: #6c757d;
+    border-radius: 6px;
+    color: #fff;
+    display: table;
+    font-size: 0.72rem;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-top: 6px;
+    padding: 5px 8px;
+}
+
+.cert-registro-active {
+    background: #198754;
 }
 
 .cert-mobile-status-danger {

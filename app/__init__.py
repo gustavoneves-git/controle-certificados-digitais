@@ -1,5 +1,5 @@
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from dotenv import load_dotenv
 from flask import Flask, current_app, g, redirect, request, session, url_for
@@ -21,6 +21,8 @@ def create_app(test_config=None):
         AUTH_ENABLED=True,
         SESSION_COOKIE_HTTPONLY=True,
         SESSION_COOKIE_SAMESITE="Lax",
+        SESSION_COOKIE_SECURE=os.getenv("SESSION_COOKIE_SECURE", "1") == "1",
+        PERMANENT_SESSION_LIFETIME=timedelta(hours=8),
         MAX_CONTENT_LENGTH=32 * 1024 * 1024,
     )
 
@@ -28,6 +30,8 @@ def create_app(test_config=None):
         app.config.update(test_config)
     if app.config.get("TESTING") and "AUTH_ENABLED" not in (test_config or {}):
         app.config["AUTH_ENABLED"] = False
+    if app.config.get("TESTING") and "SESSION_COOKIE_SECURE" not in (test_config or {}):
+        app.config["SESSION_COOKIE_SECURE"] = False
     if not app.config.get("TESTING") and not app.config.get("SECRET_KEY"):
         raise RuntimeError("SECRET_KEY obrigatoria no .env")
     if app.config.get("AUTH_ENABLED") and (
@@ -51,7 +55,7 @@ def create_app(test_config=None):
     app.register_blueprint(mensagens_bp)
 
     app.before_request(require_login)
-    app.after_request(no_cache_for_authenticated_pages)
+    app.after_request(apply_security_headers)
     app.teardown_appcontext(close_db)
     app.jinja_env.filters["date_br"] = date_br
     app.jinja_env.filters["telefone_br"] = telefone_br
@@ -75,10 +79,16 @@ def require_login():
     return redirect(url_for("auth.login"))
 
 
-def no_cache_for_authenticated_pages(response):
+def apply_security_headers(response):
     if request.endpoint != "static":
         response.headers["Cache-Control"] = "no-store, max-age=0"
         response.headers["Pragma"] = "no-cache"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["Referrer-Policy"] = "same-origin"
+    response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
+    if request.is_secure:
+        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
     return response
 
 

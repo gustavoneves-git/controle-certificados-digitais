@@ -61,7 +61,6 @@
         <thead>
         <tr>
             <th class="status-cell">Status</th>
-            <th class="registro-cell">Registro</th>
             <th class="nome-cell">Nome extraído</th>
             <th class="documento-cell">CNPJ/CPF</th>
             <th class="tipo-cell">Tipo</th>
@@ -77,8 +76,8 @@
                     <span class="cert-status-pill cert-mobile-status-{{ status_class(cert.status_vencimento or cert.status) }}">
                         {{ cert.status_vencimento or cert.status }}{% if cert.data_validade %} · {{ cert.data_validade|date_br }}{% endif %}
                     </span>
+                    <span class="cert-registro-pill {{ 'cert-registro-active' if cert.status_registro == 'ATIVO' else '' }}">{{ cert.status_registro }}</span>
                 </td>
-                <td class="registro-cell"><span class="badge text-bg-{{ 'success' if cert.status_registro == 'ATIVO' else 'secondary' }}">{{ cert.status_registro }}</span></td>
                 <td class="nome-cell">{{ cert.nome_extraido or "-" }}</td>
                 <td class="documento-cell">{{ cert.cnpj_cpf or "-" }}</td>
                 <td class="tipo-cell">{{ cert.tipo_documento or "-" }}</td>
@@ -101,7 +100,7 @@
             </tr>
         {% else %}
             <tr>
-                <td colspan="8" class="text-center text-secondary py-5">Nenhum certificado cadastrado.</td>
+                <td colspan="7" class="text-center text-secondary py-5">Nenhum certificado cadastrado.</td>
             </tr>
         {% endfor %}
         </tbody>

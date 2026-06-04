@@ -290,8 +290,11 @@ Use o seletor `Todos / e-CNPJ / e-CPF` na lista para alternar rapidamente entre 
 - Arquivos `.pfx` nao devem ser enviados ao repositorio.
 - Visualizar/copiar senha e baixar certificado registra auditoria.
 - A resposta que mostra senha usa `Cache-Control: no-store`.
+- A sessao expira automaticamente e o cookie de sessao usa `HttpOnly`, `SameSite=Lax` e `Secure` em producao.
+- As paginas internas enviam headers de seguranca como `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy` e HSTS em HTTPS.
 - O download so e permitido para arquivos dentro da pasta configurada em `STORAGE_CERTIFICADOS`.
 - Evite usar certificados reais em ambiente compartilhado sem controle de acesso ao computador.
+- Proximas melhorias recomendadas: protecao CSRF em formularios, limite de tentativas de login e, se o uso crescer, autenticacao em duas etapas ou acesso por VPN/rede restrita.
 
 ## Testes
 

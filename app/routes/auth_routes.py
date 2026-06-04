@@ -15,6 +15,8 @@ def login():
             usuario == current_app.config["APP_LOGIN_USER"]
             and check_password_hash(current_app.config["APP_LOGIN_PASSWORD_HASH"], senha)
         ):
+            session.clear()
+            session.permanent = True
             session["autenticado"] = True
             session["usuario"] = usuario
             auditoria.registrar_evento(None, "LOGIN_REALIZADO", f"Login realizado pelo usuario {usuario}.")
