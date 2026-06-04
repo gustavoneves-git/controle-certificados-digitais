@@ -67,25 +67,23 @@
             <th class="tipo-cell">Tipo</th>
             <th class="contato-cell">Contato</th>
             <th class="telefone-cell">Telefone</th>
-            <th class="validade-cell">Validade</th>
-            <th class="dias-cell">Dias</th>
-            <th class="issuer-cell">Emissor</th>
             <th class="actions-cell">Ações</th>
         </tr>
         </thead>
         <tbody>
         {% for cert in certificados %}
             <tr>
-                <td class="status-cell"><span class="badge text-bg-{{ status_class(cert.status_vencimento or cert.status) }}">{{ cert.status_vencimento or cert.status }}</span></td>
+                <td class="status-cell">
+                    <span class="cert-status-pill cert-mobile-status-{{ status_class(cert.status_vencimento or cert.status) }}">
+                        {{ cert.status_vencimento or cert.status }}{% if cert.data_validade %} · {{ cert.data_validade|date_br }}{% endif %}
+                    </span>
+                </td>
                 <td class="registro-cell"><span class="badge text-bg-{{ 'success' if cert.status_registro == 'ATIVO' else 'secondary' }}">{{ cert.status_registro }}</span></td>
                 <td class="nome-cell">{{ cert.nome_extraido or "-" }}</td>
                 <td class="documento-cell">{{ cert.cnpj_cpf or "-" }}</td>
                 <td class="tipo-cell">{{ cert.tipo_documento or "-" }}</td>
                 <td class="contato-cell">{{ cert.nome_contato or "-" }}</td>
                 <td class="telefone-cell">{{ cert.telefone_limpo|telefone_br }}</td>
-                <td class="validade-cell">{{ cert.data_validade|date_br }}</td>
-                <td class="dias-cell">{{ dias_para_vencer(cert.data_validade) if cert.data_validade else "-" }}</td>
-                <td class="text-truncate issuer-cell" title="{{ cert.issuer or '' }}">{{ cert.issuer or "-" }}</td>
                 <td class="actions-cell {{ 'actions-muted' if cert.status_registro == 'SUBSTITUIDO' else '' }}">
                     <div class="action-group">
                         <a class="btn btn-sm {{ 'btn-outline-secondary' if cert.status_registro == 'SUBSTITUIDO' else 'btn-outline-primary' }}" href="{{ url_for('certificados.detalhe', certificado_id=cert.id) }}">Ver detalhes</a>
@@ -103,7 +101,7 @@
             </tr>
         {% else %}
             <tr>
-                <td colspan="12" class="text-center text-secondary py-5">Nenhum certificado cadastrado.</td>
+                <td colspan="8" class="text-center text-secondary py-5">Nenhum certificado cadastrado.</td>
             </tr>
         {% endfor %}
         </tbody>

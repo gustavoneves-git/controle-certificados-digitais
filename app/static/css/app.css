@@ -139,15 +139,13 @@ body {
     overflow-wrap: anywhere;
 }
 
-.status-cell { width: 84px; }
+.status-cell { width: 155px; }
 .registro-cell { width: 78px; }
-.nome-cell { width: 168px; }
+.nome-cell { width: 230px; }
 .documento-cell { width: 138px; }
-.tipo-cell { width: 52px; }
-.contato-cell { width: 112px; }
-.telefone-cell { width: 96px; }
-.validade-cell { width: 92px; }
-.dias-cell { width: 58px; }
+.tipo-cell { width: 74px; }
+.contato-cell { width: 145px; }
+.telefone-cell { width: 138px; }
 
 .cert-mobile-list {
     display: none;
@@ -195,6 +193,19 @@ body {
     width: fit-content;
 }
 
+.cert-status-pill {
+    border: 1px solid #6c757d;
+    border-radius: 6px;
+    color: #4b5563;
+    display: inline-flex;
+    font-size: 0.75rem;
+    font-weight: 700;
+    line-height: 1.2;
+    padding: 6px 9px;
+    text-transform: uppercase;
+    width: fit-content;
+}
+
 .cert-mobile-status-danger {
     border-color: #dc3545;
     color: #b02a37;
@@ -224,11 +235,6 @@ body {
 .cert-mobile-empty {
     color: #637083;
     text-align: center;
-}
-
-.issuer-cell {
-    max-width: 120px;
-    width: 120px;
 }
 
 .actions-cell {
