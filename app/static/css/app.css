@@ -17,6 +17,30 @@ body {
     width: auto;
 }
 
+.navbar-brand {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.app-navbar-toggler {
+    border-radius: 6px;
+    padding: 5px 8px;
+}
+
+.app-navbar-collapse .navbar-nav {
+    align-items: center;
+    gap: 4px;
+}
+
+.app-navbar-collapse .nav-link {
+    border-radius: 6px;
+    padding: 8px 10px;
+}
+
+.app-navbar-collapse .nav-link:hover {
+    background: #f1f5f9;
+}
+
 .metric,
 .form-panel,
 .table-shell {
@@ -483,6 +507,31 @@ body {
 }
 
 @media (max-width: 640px) {
+    .navbar > .container-fluid {
+        align-items: center;
+    }
+
+    .navbar-brand {
+        font-size: 1rem;
+        max-width: calc(100% - 58px);
+    }
+
+    .app-navbar-collapse {
+        border-top: 1px solid #e5e8ec;
+        margin-top: 10px;
+        padding-top: 8px;
+        width: 100%;
+    }
+
+    .app-navbar-collapse .navbar-nav {
+        align-items: stretch;
+        gap: 4px;
+    }
+
+    .app-navbar-collapse .nav-link {
+        padding: 10px 12px;
+    }
+
     .diagnostic-list {
         grid-template-columns: 1fr;
     }
