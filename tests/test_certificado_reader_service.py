@@ -5,13 +5,16 @@ from cryptography import x509
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives.serialization import pkcs12
-from cryptography.x509.oid import NameOID
+from cryptography.x509.oid import NameOID, ObjectIdentifier
 
 from app.services.certificado_reader_service import (
     SenhaCertificadoInvalida,
     extrair_documento,
     ler_pfx,
 )
+
+
+TELEPHONE_NUMBER_OID = ObjectIdentifier("2.5.4.20")
 
 
 def _pfx_bytes(password=b"123456"):
@@ -21,6 +24,7 @@ def _pfx_bytes(password=b"123456"):
             x509.NameAttribute(NameOID.COMMON_NAME, "Empresa Teste:12345678000195"),
             x509.NameAttribute(NameOID.ORGANIZATION_NAME, "Empresa Teste"),
             x509.NameAttribute(NameOID.EMAIL_ADDRESS, "teste@example.com"),
+            x509.NameAttribute(TELEPHONE_NUMBER_OID, "+55 47 91603-1398"),
         ]
     )
     cert = (
@@ -53,6 +57,7 @@ def test_ler_pfx_extrai_dados_e_documento():
     assert dados["cnpj_cpf"] == "12345678000195"
     assert dados["nome_extraido"] == "Empresa Teste"
     assert dados["email_certificado"] == "teste@example.com"
+    assert dados["telefone_certificado"] == "5547916031398"
     assert dados["responsavel_certificado"] is None
     assert dados["thumbprint_sha1"]
     assert dados["thumbprint_sha256"]

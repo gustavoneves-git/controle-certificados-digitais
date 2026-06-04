@@ -7,11 +7,14 @@ from cryptography import x509
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives.serialization import pkcs12
-from cryptography.x509.oid import NameOID
+from cryptography.x509.oid import NameOID, ObjectIdentifier
 
 from app import create_app
 from app.services.crypto_service import gerar_chave
 from scripts.gerar_certificados_teste import SENHA_TESTE, gerar_certificados, gerar_pfx_ficticio
+
+
+TELEPHONE_NUMBER_OID = ObjectIdentifier("2.5.4.20")
 
 
 def _pfx_bytes(password=b"123456"):
@@ -34,6 +37,34 @@ def _pfx_bytes(password=b"123456"):
     )
     return pkcs12.serialize_key_and_certificates(
         name=b"certificado-teste",
+        key=key,
+        cert=cert,
+        cas=None,
+        encryption_algorithm=serialization.BestAvailableEncryption(password),
+    )
+
+
+def _pfx_bytes_com_telefone(password=b"123456"):
+    key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+    subject = issuer = x509.Name(
+        [
+            x509.NameAttribute(NameOID.COMMON_NAME, "Empresa Telefone:12345678000195"),
+            x509.NameAttribute(NameOID.ORGANIZATION_NAME, "Empresa Telefone"),
+            x509.NameAttribute(TELEPHONE_NUMBER_OID, "+55 47 91603-1398"),
+        ]
+    )
+    cert = (
+        x509.CertificateBuilder()
+        .subject_name(subject)
+        .issuer_name(issuer)
+        .public_key(key.public_key())
+        .serial_number(x509.random_serial_number())
+        .not_valid_before(datetime.now(timezone.utc) - timedelta(days=1))
+        .not_valid_after(datetime.now(timezone.utc) + timedelta(days=365))
+        .sign(key, hashes.SHA256())
+    )
+    return pkcs12.serialize_key_and_certificates(
+        name=b"certificado-telefone",
         key=key,
         cert=cert,
         cas=None,
@@ -267,6 +298,29 @@ def test_upload_sem_dados_de_contato_mantem_vencimento_e_marca_sem_contato(tmp_p
     lista = client.get("/certificados/?filtro=SEM_CONTATO")
     assert f'/certificados/{certificado["id"]}'.encode() in lista.data
     assert b"VALIDO" in lista.data
+
+
+def test_upload_preenche_telefone_do_certificado_quando_formulario_vazio(tmp_path, monkeypatch):
+    app = _app(tmp_path, monkeypatch)
+    client = app.test_client()
+
+    response = client.post(
+        "/certificados/novo",
+        data={
+            "arquivo": (io.BytesIO(_pfx_bytes_com_telefone()), "cliente.pfx"),
+            "senha": "123456",
+            "nome_contato": "Maria",
+            "sexo_contato": "MULHER",
+            "telefone_limpo": "",
+            "observacao": "",
+        },
+        content_type="multipart/form-data",
+    )
+
+    assert response.status_code == 302
+    certificado = _db_rows(app.config["DATABASE_PATH"], "certificados")[0]
+    assert certificado["telefone_limpo"] == "5547916031398"
+    assert certificado["status_contato"] == "COM_CONTATO"
 
 
 def test_editar_dados_de_contato_atualiza_status_contato_e_auditoria(tmp_path, monkeypatch):

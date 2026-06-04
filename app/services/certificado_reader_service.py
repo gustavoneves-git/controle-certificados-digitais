@@ -3,7 +3,10 @@ import re
 from cryptography import x509
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.serialization import pkcs12
-from cryptography.x509.oid import ExtensionOID, NameOID
+from cryptography.x509.oid import ExtensionOID, NameOID, ObjectIdentifier
+
+
+TELEPHONE_NUMBER_OID = ObjectIdentifier("2.5.4.20")
 
 
 class SenhaCertificadoInvalida(Exception):
@@ -40,6 +43,7 @@ def ler_pfx(conteudo, senha):
         "tipo_documento": tipo_documento,
         "nome_extraido": nome_extraido,
         "email_certificado": extrair_email(certificate),
+        "telefone_certificado": extrair_telefone(certificate),
         "responsavel_certificado": extrair_responsavel(tipo_documento, nome_extraido),
         "tem_chave_privada": private_key is not None,
         "certificados_adicionais": len(additional_certificates or []),
@@ -95,6 +99,15 @@ def extrair_email(certificate):
         valor = str(email).strip()
         if valor:
             return valor
+    return None
+
+
+def extrair_telefone(certificate):
+    telefones = _valores_subject(certificate, TELEPHONE_NUMBER_OID)
+    for telefone in telefones:
+        digitos = re.sub(r"\D", "", telefone)
+        if digitos:
+            return digitos
     return None
 
 
