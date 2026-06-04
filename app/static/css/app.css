@@ -273,15 +273,18 @@ body {
 }
 
 .cert-registro-pill {
+    align-items: center;
     background: #6c757d;
     border-radius: 7px;
     color: #fff;
-    display: table;
+    display: inline-flex;
     font-size: 0.76rem;
     font-weight: 700;
+    justify-content: center;
     line-height: 1.35;
     margin-top: 8px;
-    padding: 8px 12px;
+    min-height: 30px;
+    padding: 8px 14px;
 }
 
 .cert-registro-active {
