@@ -122,10 +122,21 @@ Comando recomendado na Oracle:
 
 ```bash
 cd /opt/consiste/legal-certificados
-.venv/bin/python scripts/backup_mark1.py --backup-dir /opt/consiste/backups/legal-certificados --keep 60
+.venv/bin/python scripts/backup_mark1.py --backup-dir /opt/consiste/backups/legal-certificados
 ```
 
-O roteiro completo de backup automatico e restauracao esta em `docs/BACKUP_PRODUCAO.md`.
+Por padrao, o script mantem apenas os 3 backups locais mais recentes.
+
+Para backup criptografado em nuvem compartilhada, configure `BACKUP_ENCRYPTION_KEY` no `.env` e gere um arquivo `.tar.gz.enc`:
+
+```bash
+.venv/bin/python scripts/backup_mark1.py \
+  --backup-dir /opt/consiste/backups/legal-certificados-nuvem \
+  --encrypt \
+  --delete-plain
+```
+
+O roteiro completo de backup, nuvem criptografada e restauracao esta em `docs/RECUPERACAO_MARK_1.md`.
 
 ## Reprocessar dados tecnicos
 

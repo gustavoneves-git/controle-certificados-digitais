@@ -8,10 +8,15 @@ import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 
+from cryptography.fernet import Fernet
 from dotenv import load_dotenv
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
+
+
+def gerar_chave_backup():
+    return Fernet.generate_key().decode("utf-8")
 
 
 def _resolve_path(value, default):
@@ -39,7 +44,13 @@ def _copy_tree_if_exists(source, destination):
 def _cleanup_old_backups(backup_dir, keep):
     if keep <= 0:
         return []
-    backups = sorted(backup_dir.glob("legal_mark1_*.tar.gz"), key=lambda item: item.stat().st_mtime)
+    backups = sorted(
+        [
+            *backup_dir.glob("legal_mark1_*.tar.gz"),
+            *backup_dir.glob("legal_mark1_*.tar.gz.enc"),
+        ],
+        key=lambda item: item.stat().st_mtime,
+    )
     removidos = []
     while len(backups) > keep:
         antigo = backups.pop(0)
@@ -48,7 +59,26 @@ def _cleanup_old_backups(backup_dir, keep):
     return removidos
 
 
-def criar_backup(backup_dir=None, keep=3):
+def _backup_fernet(key=None):
+    key = key or os.getenv("BACKUP_ENCRYPTION_KEY")
+    if not key:
+        raise RuntimeError("BACKUP_ENCRYPTION_KEY nao configurada no .env")
+    try:
+        return Fernet(key.encode("utf-8"))
+    except ValueError as exc:
+        raise RuntimeError("BACKUP_ENCRYPTION_KEY invalida. Gere uma chave Fernet valida.") from exc
+
+
+def _criptografar_arquivo(source_path, delete_plain=False):
+    encrypted_path = source_path.with_suffix(source_path.suffix + ".enc")
+    encrypted_path.write_bytes(_backup_fernet().encrypt(source_path.read_bytes()))
+    encrypted_path.chmod(0o600)
+    if delete_plain:
+        source_path.unlink()
+    return encrypted_path
+
+
+def criar_backup(backup_dir=None, keep=3, encrypt=False, delete_plain=False):
     load_dotenv(PROJECT_ROOT / ".env")
 
     database_path = _resolve_path(os.getenv("DATABASE_PATH"), "data/app.db")
@@ -100,17 +130,38 @@ def criar_backup(backup_dir=None, keep=3):
             tar.add(staged, arcname="legal_mark1")
 
     backup_path.chmod(0o600)
+    output_path = backup_path
+    if encrypt:
+        output_path = _criptografar_arquivo(backup_path, delete_plain=delete_plain)
     removidos = _cleanup_old_backups(backup_dir, keep)
-    return backup_path, manifest_items, removidos
+    return output_path, manifest_items, removidos
 
 
 def main():
     parser = argparse.ArgumentParser(description="Cria backup seguro da Mark 1.")
     parser.add_argument("--backup-dir", help="Diretorio onde o backup .tar.gz sera salvo.")
     parser.add_argument("--keep", type=int, default=3, help="Quantidade de backups locais a manter.")
+    parser.add_argument("--encrypt", action="store_true", help="Gera uma copia criptografada .enc do backup.")
+    parser.add_argument(
+        "--delete-plain",
+        action="store_true",
+        help="Remove o .tar.gz aberto depois de gerar o .enc. Use apenas se --encrypt estiver ativo.",
+    )
+    parser.add_argument("--generate-key", action="store_true", help="Gera uma chave Fernet para BACKUP_ENCRYPTION_KEY.")
     args = parser.parse_args()
 
-    backup_path, items, removidos = criar_backup(args.backup_dir, args.keep)
+    if args.generate_key:
+        print(gerar_chave_backup())
+        return 0
+    if args.delete_plain and not args.encrypt:
+        parser.error("--delete-plain requer --encrypt")
+
+    backup_path, items, removidos = criar_backup(
+        args.backup_dir,
+        args.keep,
+        encrypt=args.encrypt,
+        delete_plain=args.delete_plain,
+    )
     print(f"Backup criado: {backup_path}")
     print("Itens incluidos: " + ", ".join(items))
     if removidos:
