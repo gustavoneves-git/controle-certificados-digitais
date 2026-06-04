@@ -26,6 +26,7 @@ def ler_pfx(conteudo, senha):
     issuer = certificate.issuer.rfc4514_string()
     texto_busca = _texto_para_busca(certificate, subject, issuer)
     cnpj_cpf, tipo_documento = extrair_documento(texto_busca)
+    nome_extraido = extrair_nome(certificate)
 
     return {
         "subject": subject,
@@ -37,7 +38,9 @@ def ler_pfx(conteudo, senha):
         "serial_number": str(certificate.serial_number),
         "cnpj_cpf": cnpj_cpf,
         "tipo_documento": tipo_documento,
-        "nome_extraido": extrair_nome(certificate),
+        "nome_extraido": nome_extraido,
+        "email_certificado": extrair_email(certificate),
+        "responsavel_certificado": extrair_responsavel(tipo_documento, nome_extraido),
         "tem_chave_privada": private_key is not None,
         "certificados_adicionais": len(additional_certificates or []),
     }
@@ -69,10 +72,43 @@ def extrair_nome(certificate):
     return None
 
 
+def extrair_email(certificate):
+    emails = []
+    emails.extend(_valores_subject(certificate, NameOID.EMAIL_ADDRESS))
+    try:
+        san = certificate.extensions.get_extension_for_oid(
+            ExtensionOID.SUBJECT_ALTERNATIVE_NAME
+        ).value
+        emails.extend(san.get_values_for_type(x509.RFC822Name))
+    except x509.ExtensionNotFound:
+        pass
+
+    for email in emails:
+        valor = str(email).strip()
+        if valor:
+            return valor
+    return None
+
+
+def extrair_responsavel(tipo_documento, nome_extraido):
+    if tipo_documento == "CPF" and nome_extraido:
+        return nome_extraido
+    return None
+
+
+def _valores_subject(certificate, oid):
+    return [
+        attr.value.strip()
+        for attr in certificate.subject.get_attributes_for_oid(oid)
+        if str(attr.value).strip()
+    ]
+
+
 def _texto_para_busca(certificate, subject, issuer):
-    partes = [subject, issuer]
+    partes = []
     for attr in certificate.subject:
         partes.append(str(attr.value))
+    partes.extend([subject, issuer])
     try:
         san = certificate.extensions.get_extension_for_oid(
             ExtensionOID.SUBJECT_ALTERNATIVE_NAME

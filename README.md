@@ -34,6 +34,7 @@ Funcionalidades entregues:
 
 - A validade oficial vem da leitura interna do `.pfx`.
 - A validade nunca vem do nome do arquivo.
+- Campos opcionais, como e-mail ou titular/responsavel, so aparecem quando existem dentro do certificado.
 - A Mark 1 nao usa OCR, MMC, Outlook, OneDrive, Graph API, Onvio, Messenger, WhatsApp API ou Selenium.
 - CNPJ/CPF extraido do certificado identifica a empresa/certificado.
 - Telefone limpo identifica o canal de atendimento.
@@ -180,6 +181,7 @@ Na tela de detalhe, valide:
 - Serial number.
 - Thumbprint SHA1 e SHA256.
 - CNPJ/CPF extraido, quando o certificado trouxer essa informacao.
+- E-mail ou titular/responsavel, somente quando o certificado trouxer esses dados de forma confiavel.
 - Status calculado pela data real do certificado.
 
 Se a senha estiver errada ou o arquivo nao for um `.pfx` valido, o sistema nao deve quebrar. O registro fica como `SENHA_INVALIDA` e a validade permanece vazia, mesmo que o nome do arquivo contenha alguma data.

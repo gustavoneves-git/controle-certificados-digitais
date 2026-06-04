@@ -29,6 +29,8 @@ def init_db():
             cnpj_cpf TEXT,
             tipo_documento TEXT,
             nome_extraido TEXT,
+            email_certificado TEXT,
+            responsavel_certificado TEXT,
             nome_contato TEXT,
             sexo_contato TEXT,
             telefone_limpo TEXT,
@@ -83,6 +85,8 @@ def _ensure_certificados_columns(db):
         "substituido_em": "ALTER TABLE certificados ADD COLUMN substituido_em TEXT",
         "arquivo_arquivado_em": "ALTER TABLE certificados ADD COLUMN arquivo_arquivado_em TEXT",
         "sexo_contato": "ALTER TABLE certificados ADD COLUMN sexo_contato TEXT",
+        "email_certificado": "ALTER TABLE certificados ADD COLUMN email_certificado TEXT",
+        "responsavel_certificado": "ALTER TABLE certificados ADD COLUMN responsavel_certificado TEXT",
     }
     for column, sql in migrations.items():
         if column not in columns:

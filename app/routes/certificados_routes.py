@@ -141,6 +141,8 @@ def novo():
             "cnpj_cpf": None,
             "tipo_documento": "DESCONHECIDO",
             "nome_extraido": None,
+            "email_certificado": None,
+            "responsavel_certificado": None,
         }
         status_registro = "VERIFICAR"
         status_vencimento = SENHA_INVALIDA

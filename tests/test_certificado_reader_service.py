@@ -20,6 +20,7 @@ def _pfx_bytes(password=b"123456"):
         [
             x509.NameAttribute(NameOID.COMMON_NAME, "Empresa Teste:12345678000195"),
             x509.NameAttribute(NameOID.ORGANIZATION_NAME, "Empresa Teste"),
+            x509.NameAttribute(NameOID.EMAIL_ADDRESS, "teste@example.com"),
         ]
     )
     cert = (
@@ -30,6 +31,10 @@ def _pfx_bytes(password=b"123456"):
         .serial_number(x509.random_serial_number())
         .not_valid_before(datetime.now(timezone.utc) - timedelta(days=1))
         .not_valid_after(datetime.now(timezone.utc) + timedelta(days=365))
+        .add_extension(
+            x509.SubjectAlternativeName([x509.RFC822Name("teste@example.com")]),
+            critical=False,
+        )
         .sign(key, hashes.SHA256())
     )
     return pkcs12.serialize_key_and_certificates(
@@ -47,8 +52,41 @@ def test_ler_pfx_extrai_dados_e_documento():
     assert dados["tipo_documento"] == "CNPJ"
     assert dados["cnpj_cpf"] == "12345678000195"
     assert dados["nome_extraido"] == "Empresa Teste"
+    assert dados["email_certificado"] == "teste@example.com"
+    assert dados["responsavel_certificado"] is None
     assert dados["thumbprint_sha1"]
     assert dados["thumbprint_sha256"]
+
+
+def test_ler_pfx_mostra_responsavel_quando_certificado_for_cpf():
+    key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+    subject = issuer = x509.Name(
+        [
+            x509.NameAttribute(NameOID.COMMON_NAME, "Pessoa Teste:12345678901"),
+        ]
+    )
+    cert = (
+        x509.CertificateBuilder()
+        .subject_name(subject)
+        .issuer_name(issuer)
+        .public_key(key.public_key())
+        .serial_number(x509.random_serial_number())
+        .not_valid_before(datetime.now(timezone.utc) - timedelta(days=1))
+        .not_valid_after(datetime.now(timezone.utc) + timedelta(days=365))
+        .sign(key, hashes.SHA256())
+    )
+    pfx = pkcs12.serialize_key_and_certificates(
+        name=b"certificado-cpf",
+        key=key,
+        cert=cert,
+        cas=None,
+        encryption_algorithm=serialization.BestAvailableEncryption(b"123456"),
+    )
+
+    dados = ler_pfx(pfx, "123456")
+
+    assert dados["tipo_documento"] == "CPF"
+    assert dados["responsavel_certificado"] == "Pessoa Teste"
 
 
 def test_ler_pfx_trata_senha_invalida():

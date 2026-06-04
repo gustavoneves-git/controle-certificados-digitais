@@ -16,6 +16,8 @@ def create_certificado(data):
         "cnpj_cpf",
         "tipo_documento",
         "nome_extraido",
+        "email_certificado",
+        "responsavel_certificado",
         "nome_contato",
         "sexo_contato",
         "telefone_limpo",

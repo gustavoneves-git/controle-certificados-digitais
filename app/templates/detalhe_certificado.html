@@ -35,6 +35,12 @@
                 <div><span>Nome extraido</span><strong>{{ certificado.nome_extraido or "-" }}</strong></div>
                 <div><span>CNPJ/CPF</span><strong>{{ certificado.cnpj_cpf or "-" }}</strong></div>
                 <div><span>Tipo documento</span><strong>{{ certificado.tipo_documento or "-" }}</strong></div>
+                {% if certificado.responsavel_certificado %}
+                    <div><span>Titular/responsavel</span><strong>{{ certificado.responsavel_certificado }}</strong></div>
+                {% endif %}
+                {% if certificado.email_certificado %}
+                    <div><span>E-mail no certificado</span><strong>{{ certificado.email_certificado }}</strong></div>
+                {% endif %}
                 <div><span>Validade</span><strong>{{ certificado.data_validade|date_br }}</strong></div>
                 <div><span>Dias para vencer</span><strong>{{ dias_para_vencer(certificado.data_validade) if certificado.data_validade else "-" }}</strong></div>
             </div>
@@ -64,6 +70,14 @@
                 <dd>{{ certificado.cnpj_cpf or "-" }}</dd>
                 <dt>Tipo do documento</dt>
                 <dd>{{ certificado.tipo_documento or "-" }}</dd>
+                {% if certificado.responsavel_certificado %}
+                    <dt>Titular/responsavel no certificado</dt>
+                    <dd>{{ certificado.responsavel_certificado }}</dd>
+                {% endif %}
+                {% if certificado.email_certificado %}
+                    <dt>E-mail no certificado</dt>
+                    <dd>{{ certificado.email_certificado }}</dd>
+                {% endif %}
                 <dt>Origem da validade</dt>
                 <dd>CERTIFICADO_PFX</dd>
                 <dt>Status calculado</dt>
