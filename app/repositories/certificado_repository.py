@@ -188,6 +188,39 @@ def update_senha(certificado_id, senha_criptografada):
     db.commit()
 
 
+def update_dados_tecnicos(certificado_id, data):
+    fields = [
+        "subject",
+        "issuer",
+        "data_emissao",
+        "data_validade",
+        "thumbprint_sha1",
+        "thumbprint_sha256",
+        "serial_number",
+        "cnpj_cpf",
+        "tipo_documento",
+        "nome_extraido",
+        "email_certificado",
+        "responsavel_certificado",
+        "status",
+        "status_vencimento",
+    ]
+    assignments = ", ".join(f"{field} = ?" for field in fields)
+    values = [data.get(field) for field in fields]
+    values.append(certificado_id)
+    db = get_db()
+    db.execute(
+        f"""
+        UPDATE certificados
+        SET {assignments},
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = ?
+        """,
+        values,
+    )
+    db.commit()
+
+
 def update_certificado(certificado_id, data):
     fields = [
         "nome_arquivo_original",

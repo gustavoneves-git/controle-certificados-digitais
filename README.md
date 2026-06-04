@@ -127,6 +127,26 @@ cd /opt/consiste/legal-certificados
 
 O roteiro completo de backup automatico e restauracao esta em `docs/BACKUP_PRODUCAO.md`.
 
+## Reprocessar dados tecnicos
+
+Quando a regra de leitura do certificado evoluir, use o script abaixo para reler arquivos ja cadastrados sem alterar contato, telefone, observacao, senha ou arquivo:
+
+```bash
+.venv/bin/python scripts/reprocessar_certificados_tecnicos.py
+```
+
+Por padrao ele roda em modo previa e nao grava nada. Para aplicar depois de revisar a previa e fazer backup:
+
+```bash
+.venv/bin/python scripts/reprocessar_certificados_tecnicos.py --apply
+```
+
+Para testar apenas um cadastro:
+
+```bash
+.venv/bin/python scripts/reprocessar_certificados_tecnicos.py --certificado-id 80
+```
+
 Login padrao da Mark 1:
 
 - configure `APP_LOGIN_USER` no `.env`;
