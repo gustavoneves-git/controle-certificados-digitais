@@ -30,7 +30,7 @@ def test_certificado_ficticio_valido_extrai_nome_cnpj_e_validade_futura(tmp_path
 
     assert dados["nome_extraido"] == "EMPRESA TESTE LTDA"
     assert dados["cnpj_cpf"] == "11222333000181"
-    assert dados["tipo_documento"] == "CNPJ"
+    assert dados["tipo_documento"] == "e-CNPJ"
     assert calcular_status(dados["data_validade"], hoje=hoje) == VALIDO
 
 

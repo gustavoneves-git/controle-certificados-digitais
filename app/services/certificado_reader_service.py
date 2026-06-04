@@ -51,11 +51,11 @@ def extrair_documento(texto):
     for grupo in grupos:
         digitos = re.sub(r"\D", "", grupo)
         if len(digitos) == 14:
-            return digitos, "CNPJ"
+            return digitos, "e-CNPJ"
         if len(digitos) == 11:
-            return digitos, "CPF"
+            return digitos, "e-CPF"
         if len(digitos) > 14:
-            for tamanho, tipo in ((14, "CNPJ"), (11, "CPF")):
+            for tamanho, tipo in ((14, "e-CNPJ"), (11, "e-CPF")):
                 for inicio in range(0, len(digitos) - tamanho + 1):
                     candidato = digitos[inicio : inicio + tamanho]
                     if len(candidato) == tamanho:
@@ -91,7 +91,7 @@ def extrair_email(certificate):
 
 
 def extrair_responsavel(tipo_documento, nome_extraido):
-    if tipo_documento == "CPF" and nome_extraido:
+    if tipo_documento == "e-CPF" and nome_extraido:
         return nome_extraido
     return None
 

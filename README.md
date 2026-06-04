@@ -38,6 +38,7 @@ Funcionalidades entregues:
 - Campos opcionais, como e-mail ou titular/responsavel, so aparecem quando existem dentro do certificado.
 - A Mark 1 nao usa OCR, MMC, Outlook, OneDrive, Graph API, Onvio, Messenger, WhatsApp API ou Selenium.
 - CNPJ/CPF extraido do certificado identifica a empresa/certificado.
+- Tipo de certificado separado entre `e-CNPJ` e `e-CPF`, conforme o documento extraido de dentro do arquivo.
 - Telefone identifica o canal de atendimento. Visualmente use `+55 11 99999-9999`; internamente o sistema salva somente numeros, por exemplo `5511999999999`, para busca futura.
 - Nome do contato personaliza a mensagem.
 - E-mail e RG/CNH do contato podem ser guardados para apoiar emissao ou renovacao.
@@ -191,6 +192,7 @@ Na tela de detalhe, valide:
 - Serial number.
 - Thumbprint SHA1 e SHA256.
 - CNPJ/CPF extraido, quando o certificado trouxer essa informacao.
+- Tipo do certificado: `e-CNPJ`, `e-CPF` ou `DESCONHECIDO`.
 - E-mail ou titular/responsavel, somente quando o certificado trouxer esses dados de forma confiavel.
 - Status calculado pela data real do certificado.
 

@@ -49,7 +49,7 @@ def _pfx_bytes(password=b"123456"):
 def test_ler_pfx_extrai_dados_e_documento():
     dados = ler_pfx(_pfx_bytes(), "123456")
 
-    assert dados["tipo_documento"] == "CNPJ"
+    assert dados["tipo_documento"] == "e-CNPJ"
     assert dados["cnpj_cpf"] == "12345678000195"
     assert dados["nome_extraido"] == "Empresa Teste"
     assert dados["email_certificado"] == "teste@example.com"
@@ -85,7 +85,7 @@ def test_ler_pfx_mostra_responsavel_quando_certificado_for_cpf():
 
     dados = ler_pfx(pfx, "123456")
 
-    assert dados["tipo_documento"] == "CPF"
+    assert dados["tipo_documento"] == "e-CPF"
     assert dados["responsavel_certificado"] == "Pessoa Teste"
 
 
@@ -100,6 +100,6 @@ def test_ler_pfx_trata_arquivo_invalido():
 
 
 def test_extrair_documento_reconhece_cpf_cnpj_e_desconhecido():
-    assert extrair_documento("CPF 123.456.789-01") == ("12345678901", "CPF")
-    assert extrair_documento("CNPJ 12.345.678/0001-95") == ("12345678000195", "CNPJ")
+    assert extrair_documento("CPF 123.456.789-01") == ("12345678901", "e-CPF")
+    assert extrair_documento("CNPJ 12.345.678/0001-95") == ("12345678000195", "e-CNPJ")
     assert extrair_documento("sem documento") == (None, "DESCONHECIDO")

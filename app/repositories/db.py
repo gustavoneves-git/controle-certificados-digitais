@@ -122,3 +122,13 @@ def _ensure_certificados_columns(db):
             END
         """
     )
+    db.execute(
+        """
+        UPDATE certificados
+        SET tipo_documento = CASE
+                WHEN tipo_documento = 'CNPJ' THEN 'e-CNPJ'
+                WHEN tipo_documento = 'CPF' THEN 'e-CPF'
+                ELSE tipo_documento
+            END
+        """
+    )
