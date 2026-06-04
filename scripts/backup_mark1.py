@@ -48,7 +48,7 @@ def _cleanup_old_backups(backup_dir, keep):
     return removidos
 
 
-def criar_backup(backup_dir=None, keep=30):
+def criar_backup(backup_dir=None, keep=3):
     load_dotenv(PROJECT_ROOT / ".env")
 
     database_path = _resolve_path(os.getenv("DATABASE_PATH"), "data/app.db")
@@ -107,7 +107,7 @@ def criar_backup(backup_dir=None, keep=30):
 def main():
     parser = argparse.ArgumentParser(description="Cria backup seguro da Mark 1.")
     parser.add_argument("--backup-dir", help="Diretorio onde o backup .tar.gz sera salvo.")
-    parser.add_argument("--keep", type=int, default=30, help="Quantidade de backups locais a manter.")
+    parser.add_argument("--keep", type=int, default=3, help="Quantidade de backups locais a manter.")
     args = parser.parse_args()
 
     backup_path, items, removidos = criar_backup(args.backup_dir, args.keep)
