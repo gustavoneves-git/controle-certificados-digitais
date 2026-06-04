@@ -268,6 +268,8 @@ A tela de certificados abre em `Ativos` por padrao. Use os filtros rapidos para 
 
 A busca aceita CNPJ/CPF, nome extraido, nome do contato e telefone limpo.
 
+Use o seletor `Todos / e-CNPJ / e-CPF` na lista para alternar rapidamente entre certificados de empresa e certificados de pessoa fisica sem perder o filtro principal.
+
 ## Fluxo recomendado de renovacao
 
 1. Filtre por `Vencem em 15 dias` ou `Vencidos`.

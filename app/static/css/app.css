@@ -88,6 +88,30 @@ body {
     flex: 1 1 auto;
 }
 
+.type-toggle {
+    background: #eef2f6;
+    border: 1px solid #d3dae3;
+    border-radius: 8px;
+    display: inline-flex;
+    flex: 0 0 auto;
+    padding: 3px;
+}
+
+.type-toggle-option {
+    border-radius: 6px;
+    color: #46576b;
+    font-size: 0.875rem;
+    line-height: 1.2;
+    padding: 7px 10px;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.type-toggle-option.active {
+    background: #0d6efd;
+    color: #fff;
+}
+
 .search-form {
     display: flex;
     flex: 0 0 520px;
@@ -389,6 +413,16 @@ body {
 
     .quick-filters {
         flex: 0 1 auto;
+    }
+
+    .type-toggle {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        width: 100%;
+    }
+
+    .type-toggle-option {
+        text-align: center;
     }
 
     .cert-desktop-table {

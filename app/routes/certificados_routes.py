@@ -45,6 +45,10 @@ certificados_bp = Blueprint("certificados", __name__, url_prefix="/certificados"
 def listar():
     filtro = request.args.get("filtro") or request.args.get("status_registro", "ATIVO")
     busca = request.args.get("busca", "").strip()
+    tipo = request.args.get("tipo", "TODOS")
+    tipos = {"TODOS", "e-CNPJ", "e-CPF"}
+    if tipo not in tipos:
+        tipo = "TODOS"
     filtros = {
         "ATIVO": ("ATIVO", None),
         "VENCIDO": ("ATIVO", "VENCIDO"),
@@ -64,6 +68,7 @@ def listar():
         status_registro=status_registro,
         status_vencimento=status_vencimento,
         status_contato=status_contato,
+        tipo_documento=None if tipo == "TODOS" else tipo,
         busca=busca,
     )
     return render_template(
@@ -73,6 +78,7 @@ def listar():
         status_class=status_class,
         filtro=filtro,
         busca=busca,
+        tipo=tipo,
     )
 
 

@@ -45,7 +45,13 @@ def create_certificado(data):
     return cursor.lastrowid
 
 
-def list_certificados(status_registro="ATIVO", status_vencimento=None, status_contato=None, busca=None):
+def list_certificados(
+    status_registro="ATIVO",
+    status_vencimento=None,
+    status_contato=None,
+    tipo_documento=None,
+    busca=None,
+):
     query = "SELECT * FROM certificados"
     params = []
     where = []
@@ -58,6 +64,9 @@ def list_certificados(status_registro="ATIVO", status_vencimento=None, status_co
     if status_contato:
         where.append("status_contato = ?")
         params.append(status_contato)
+    if tipo_documento:
+        where.append("tipo_documento = ?")
+        params.append(tipo_documento)
     if busca:
         termo = f"%{busca.strip()}%"
         telefone_busca = re.sub(r"\D", "", busca)

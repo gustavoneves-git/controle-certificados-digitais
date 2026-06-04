@@ -603,6 +603,34 @@ def test_filtros_rapidos_e_busca_da_lista(tmp_path, monkeypatch):
     assert busca_contato.data.count(b"+55 47 91603-1398") >= 3
 
 
+def test_filtro_por_tipo_documento_e_cnpj_e_cpf(tmp_path, monkeypatch):
+    app = _app(tmp_path, monkeypatch)
+    client = app.test_client()
+    base = _gerar_certificados_rota(tmp_path)
+    cpf = tmp_path / "pessoa_teste.pfx"
+    cpf.write_bytes(
+        gerar_pfx_ficticio(
+            "PESSOA TESTE",
+            "12345678901",
+            datetime(2026, 1, 1, tzinfo=timezone.utc),
+            datetime(2027, 1, 1, tzinfo=timezone.utc),
+        )
+    )
+
+    _post_pfx(client, base / "empresa_teste_valido.pfx")
+    _post_pfx(client, cpf)
+
+    lista_cnpj = client.get("/certificados/?filtro=TODOS&tipo=e-CNPJ")
+    assert b"EMPRESA TESTE LTDA" in lista_cnpj.data
+    assert b"PESSOA TESTE" not in lista_cnpj.data
+    assert b"tipo=e-CNPJ" in lista_cnpj.data
+
+    lista_cpf = client.get("/certificados/?filtro=TODOS&tipo=e-CPF")
+    assert b"PESSOA TESTE" in lista_cpf.data
+    assert b"EMPRESA TESTE LTDA" not in lista_cpf.data
+    assert b"tipo=e-CPF" in lista_cpf.data
+
+
 def test_dashboard_tem_cards_operacionais_clicaveis(tmp_path, monkeypatch):
     app = _app(tmp_path, monkeypatch)
     client = app.test_client()
