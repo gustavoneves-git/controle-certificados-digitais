@@ -323,6 +323,30 @@ def test_upload_preenche_telefone_do_certificado_quando_formulario_vazio(tmp_pat
     assert certificado["status_contato"] == "COM_CONTATO"
 
 
+def test_upload_com_telefone_do_certificado_sem_nome_marca_contato_a_confirmar(tmp_path, monkeypatch):
+    app = _app(tmp_path, monkeypatch)
+    client = app.test_client()
+
+    response = client.post(
+        "/certificados/novo",
+        data={
+            "arquivo": (io.BytesIO(_pfx_bytes_com_telefone()), "cliente.pfx"),
+            "senha": "123456",
+            "nome_contato": "",
+            "sexo_contato": "",
+            "telefone_limpo": "",
+            "observacao": "",
+        },
+        content_type="multipart/form-data",
+    )
+
+    assert response.status_code == 302
+    certificado = _db_rows(app.config["DATABASE_PATH"], "certificados")[0]
+    assert certificado["telefone_limpo"] == "5547916031398"
+    assert certificado["nome_contato"] == "Contato a confirmar"
+    assert certificado["status_contato"] == "SEM_CONTATO"
+
+
 def test_editar_dados_de_contato_atualiza_status_contato_e_auditoria(tmp_path, monkeypatch):
     app = _app(tmp_path, monkeypatch)
     client = app.test_client()

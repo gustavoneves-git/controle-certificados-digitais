@@ -39,6 +39,7 @@ from app.services.vencimento_service import (
 )
 
 certificados_bp = Blueprint("certificados", __name__, url_prefix="/certificados")
+CONTATO_A_CONFIRMAR = "Contato a confirmar"
 
 
 @certificados_bp.route("/")
@@ -115,6 +116,7 @@ def novo():
     substituido_por_id = None
     substituido_em = None
     certificado_ativo_existente = None
+    telefone_preenchido_do_certificado = False
 
     try:
         dados_certificado = ler_pfx(conteudo, senha)
@@ -122,6 +124,9 @@ def novo():
             telefone_certificado = normalizar_telefone(dados_certificado.get("telefone_certificado"))
             if telefone_certificado and is_telefone_limpo_valido(telefone_certificado):
                 telefone_limpo = telefone_certificado
+                telefone_preenchido_do_certificado = True
+                if not nome_contato:
+                    nome_contato = CONTATO_A_CONFIRMAR
         status_vencimento = calcular_status(
             dados_certificado.get("data_validade"),
             essencial_ok=bool(dados_certificado.get("subject")),
@@ -165,7 +170,11 @@ def novo():
         flash("Nao foi possivel abrir o certificado. Verifique se a senha esta correta.", "danger")
         flash("O arquivo enviado nao parece ser um certificado .pfx ou .p12 valido.", "warning")
 
-    status_contato = calcular_status_contato(nome_contato, sexo_contato, telefone_limpo)
+    status_contato = (
+        SEM_CONTATO
+        if telefone_preenchido_do_certificado and nome_contato == CONTATO_A_CONFIRMAR
+        else calcular_status_contato(nome_contato, sexo_contato, telefone_limpo)
+    )
     caminho = salvar_certificado(arquivo, current_app.config["STORAGE_CERTIFICADOS"])
     certificado_id = certificados.create_certificado(
         {
