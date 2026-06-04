@@ -264,13 +264,12 @@ body {
     border: 1px solid #6c757d;
     border-radius: 6px;
     color: #4b5563;
-    display: inline-flex;
-    font-size: 0.75rem;
+    display: table;
+    font-size: 0.78rem;
     font-weight: 700;
     line-height: 1.2;
-    padding: 6px 9px;
+    padding: 7px 10px;
     text-transform: uppercase;
-    width: fit-content;
 }
 
 .cert-registro-pill {
@@ -278,11 +277,11 @@ body {
     border-radius: 6px;
     color: #fff;
     display: table;
-    font-size: 0.72rem;
+    font-size: 0.74rem;
     font-weight: 700;
     line-height: 1.2;
-    margin-top: 6px;
-    padding: 5px 8px;
+    margin-top: 8px;
+    padding: 7px 10px;
 }
 
 .cert-registro-active {

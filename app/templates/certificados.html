@@ -71,7 +71,7 @@
             <tr>
                 <td class="status-cell">
                     <span class="cert-status-pill cert-mobile-status-{{ status_class(cert.status_vencimento or cert.status) }}">
-                        {{ cert.status_vencimento or cert.status }}{% if cert.data_validade %} · {{ cert.data_validade|date_br }}{% endif %}
+                        {{ cert.data_validade|date_br if cert.data_validade else "-" }}
                     </span>
                     <span class="cert-registro-pill {{ 'cert-registro-active' if cert.status_registro == 'ATIVO' else '' }}">{{ cert.status_registro }}</span>
                 </td>
