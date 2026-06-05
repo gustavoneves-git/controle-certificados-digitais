@@ -1,14 +1,25 @@
 function telefoneValido(valor) {
+    if (/[A-Za-z]/.test(valor)) return false;
     const digits = valor.replace(/\D/g, "");
-    return /^\d{12,13}$/.test(digits);
+    if (digits.startsWith("55")) return /^\d{12,13}$/.test(digits);
+    if (digits.startsWith("1")) return /^\d{11}$/.test(digits);
+    return false;
 }
 
 function formatarTelefone(valor) {
-    const digits = valor.replace(/\D/g, "").slice(0, 13);
+    const digits = valor.replace(/\D/g, "").slice(0, 15);
     if (digits.length <= 2) return digits ? `+${digits}` : "";
+    if (digits.startsWith("1")) {
+        if (digits.length <= 4) return `+${digits.slice(0, 1)} ${digits.slice(1)}`;
+        if (digits.length <= 7) return `+${digits.slice(0, 1)} ${digits.slice(1, 4)}-${digits.slice(4)}`;
+        if (digits.length <= 11) return `+${digits.slice(0, 1)} ${digits.slice(1, 4)}-${digits.slice(4, 7)}-${digits.slice(7)}`;
+    }
     if (digits.length <= 4) return `+${digits.slice(0, 2)} ${digits.slice(2)}`;
     if (digits.length <= 8) {
         return `+${digits.slice(0, 2)} ${digits.slice(2, 4)} ${digits.slice(4)}`;
+    }
+    if (digits.length > 13) {
+        return `+${digits}`;
     }
     const phoneStart = digits.length === 13 ? 9 : 8;
     return `+${digits.slice(0, 2)} ${digits.slice(2, 4)} ${digits.slice(4, phoneStart)}-${digits.slice(phoneStart)}`;
