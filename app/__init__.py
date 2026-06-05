@@ -19,6 +19,13 @@ def create_app(test_config=None):
         STORAGE_DOCUMENTOS_IDENTIFICACAO=os.getenv(
             "STORAGE_DOCUMENTOS_IDENTIFICACAO", "storage/documentos_identificacao"
         ),
+        ONVIO_URL=os.getenv("ONVIO_URL", "https://onvio.com.br/staff/#/documents/client"),
+        ONVIO_EMAIL=os.getenv("ONVIO_EMAIL", ""),
+        ONVIO_PASSWORD=os.getenv("ONVIO_PASSWORD", ""),
+        ONVIO_BROWSER=os.getenv("ONVIO_BROWSER", "chrome"),
+        ONVIO_HEADLESS=os.getenv("ONVIO_HEADLESS", "0") == "1",
+        ONVIO_USER_DATA_DIR=os.getenv("ONVIO_USER_DATA_DIR", "storage/onvio_browser"),
+        ONVIO_WAIT_SECONDS=int(os.getenv("ONVIO_WAIT_SECONDS", "25")),
         APP_LOGIN_USER=os.getenv("APP_LOGIN_USER"),
         APP_LOGIN_PASSWORD_HASH=os.getenv("APP_LOGIN_PASSWORD_HASH"),
         AUTH_ENABLED=True,

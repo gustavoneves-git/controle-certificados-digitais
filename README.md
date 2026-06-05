@@ -31,6 +31,12 @@ Funcionalidades entregues:
 - Nao usa OCR.
 - Nao depende do MMC.
 
+## Entrada Onvio assistida
+
+A etapa inicial de Mark 2 para entrada/login no Onvio fica documentada em `docs/ENTRADA_ONVIO_ASSISTIDA.md`.
+
+Esta etapa apenas abre o navegador e valida autenticação assistida. Ela nao busca contato, nao abre conversa e nao envia mensagem.
+
 ## Regras centrais
 
 - A validade oficial vem da leitura interna do `.pfx`.
