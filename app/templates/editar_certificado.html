@@ -43,9 +43,14 @@
             <div class="form-text">Opcional. Ajuda na emissao ou renovacao do certificado.</div>
         </div>
         <div class="mb-3">
-            <label for="documento_identificacao" class="form-label">RG ou CNH</label>
-            <input class="form-control" type="text" id="documento_identificacao" name="documento_identificacao" value="{{ certificado.documento_identificacao or '' }}">
-            <div class="form-text">Opcional. Preencha somente com documento confirmado pelo escritorio.</div>
+            <label for="documento_identificacao_arquivo" class="form-label">RG ou CNH</label>
+            <input class="form-control" type="file" id="documento_identificacao_arquivo" name="documento_identificacao_arquivo" accept=".pdf,.jpg,.jpeg,.png,.webp,.heic,.heif,.bmp,.tif,.tiff,.doc,.docx">
+            <div class="form-text">
+                Opcional. Envie o arquivo do documento confirmado.
+                {% if certificado.documento_identificacao %}
+                    Arquivo atual: {{ certificado.documento_identificacao }}.
+                {% endif %}
+            </div>
         </div>
         <div class="mb-3">
             <label for="telefone_limpo" class="form-label">Telefone</label>

@@ -61,6 +61,7 @@ Depois confira:
 /tmp/restauracao_mark1/legal_mark1/data/app.db
 /tmp/restauracao_mark1/legal_mark1/storage/certificados
 /tmp/restauracao_mark1/legal_mark1/storage/certificados_arquivados
+/tmp/restauracao_mark1/legal_mark1/storage/documentos_identificacao
 /tmp/restauracao_mark1/legal_mark1/.env
 ```
 

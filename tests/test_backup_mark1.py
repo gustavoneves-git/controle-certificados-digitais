@@ -48,6 +48,7 @@ def test_backup_criptografado_pode_ser_restaurado_em_pasta_vazia(tmp_path, monke
     monkeypatch.setenv("DATABASE_PATH", str(tmp_path / "data" / "app.db"))
     monkeypatch.setenv("STORAGE_CERTIFICADOS", str(tmp_path / "storage" / "certificados"))
     monkeypatch.setenv("STORAGE_CERTIFICADOS_ARQUIVADOS", str(tmp_path / "storage" / "certificados_arquivados"))
+    monkeypatch.setenv("STORAGE_DOCUMENTOS_IDENTIFICACAO", str(tmp_path / "storage" / "documentos_identificacao"))
 
     database_path = tmp_path / "data" / "app.db"
     database_path.parent.mkdir()
@@ -60,6 +61,9 @@ def test_backup_criptografado_pode_ser_restaurado_em_pasta_vazia(tmp_path, monke
     (storage / "certificado.pfx").write_bytes(b"certificado")
     arquivados = tmp_path / "storage" / "certificados_arquivados"
     arquivados.mkdir()
+    documentos = tmp_path / "storage" / "documentos_identificacao"
+    documentos.mkdir()
+    (documentos / "cnh.pdf").write_bytes(b"documento")
     (tmp_path / ".env").write_text("BACKUP_ENCRYPTION_KEY=\n", encoding="utf-8")
 
     backup_path, items, removidos = backup_mark1.criar_backup(
@@ -73,6 +77,7 @@ def test_backup_criptografado_pode_ser_restaurado_em_pasta_vazia(tmp_path, monke
     assert backup_path.exists()
     assert not backup_path.with_suffix("").exists()
     assert "data/app.db" in items
+    assert "storage/documentos_identificacao" in items
     assert removidos == []
 
     restore_dir = tmp_path / "restore"
@@ -82,6 +87,7 @@ def test_backup_criptografado_pode_ser_restaurado_em_pasta_vazia(tmp_path, monke
     with sqlite3.connect(restored_db) as conn:
         assert conn.execute("SELECT nome FROM teste").fetchone()[0] == "ok"
     assert (restore_dir / "legal_mark1" / "storage" / "certificados" / "certificado.pfx").read_bytes() == b"certificado"
+    assert (restore_dir / "legal_mark1" / "storage" / "documentos_identificacao" / "cnh.pdf").read_bytes() == b"documento"
     assert (restore_dir / "legal_mark1" / ".env").exists()
 
 

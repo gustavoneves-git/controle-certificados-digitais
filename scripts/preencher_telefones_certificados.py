@@ -113,6 +113,9 @@ def _processar_certificado(certificado, apply=False):
                 "sexo_contato": certificado["sexo_contato"],
                 "email_contato": certificado["email_contato"],
                 "documento_identificacao": certificado["documento_identificacao"],
+                "documento_identificacao_arquivo": certificado["documento_identificacao_arquivo"]
+                if "documento_identificacao_arquivo" in certificado.keys()
+                else None,
                 "telefone_limpo": telefone,
                 "observacao": certificado["observacao"],
                 "status_contato": status_contato,

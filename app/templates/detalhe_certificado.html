@@ -61,7 +61,13 @@
                 <div><span>Sexo do contato</span><strong>{{ certificado.sexo_contato or "Nao informado" }}</strong></div>
                 <div><span>Telefone</span><strong>{{ certificado.telefone_limpo|telefone_br }}</strong></div>
                 <div><span>E-mail</span><strong>{{ certificado.email_contato or "-" }}</strong></div>
-                <div><span>RG ou CNH</span><strong>{{ certificado.documento_identificacao or "-" }}</strong></div>
+                <div>
+                    <span>RG ou CNH</span>
+                    <strong>{{ certificado.documento_identificacao or "-" }}</strong>
+                    {% if certificado.documento_identificacao_arquivo %}
+                        <a class="btn btn-sm btn-outline-secondary mt-2" href="{{ url_for('certificados.download_documento_identificacao', certificado_id=certificado.id) }}">Baixar documento</a>
+                    {% endif %}
+                </div>
                 {% if certificado.telefone_limpo %}
                     <div><span>Telefone para busca futura</span><strong>{{ certificado.telefone_limpo }}</strong></div>
                 {% endif %}

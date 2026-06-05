@@ -6,6 +6,7 @@ O sistema guarda dados sensiveis em:
 data/app.db
 storage/certificados/
 storage/certificados_arquivados/
+storage/documentos_identificacao/
 .env
 ```
 
@@ -132,6 +133,8 @@ Depois de conferir a restauracao:
 cp /tmp/restore-legal/legal_mark1/data/app.db /opt/consiste/legal-certificados/data/app.db
 cp -a /tmp/restore-legal/legal_mark1/storage/certificados/. /opt/consiste/legal-certificados/storage/certificados/
 cp -a /tmp/restore-legal/legal_mark1/storage/certificados_arquivados/. /opt/consiste/legal-certificados/storage/certificados_arquivados/
+mkdir -p /opt/consiste/legal-certificados/storage/documentos_identificacao
+cp -a /tmp/restore-legal/legal_mark1/storage/documentos_identificacao/. /opt/consiste/legal-certificados/storage/documentos_identificacao/
 cp /tmp/restore-legal/legal_mark1/.env /opt/consiste/legal-certificados/.env
 sudo chown -R ubuntu:www-data /opt/consiste/legal-certificados/data /opt/consiste/legal-certificados/storage
 chmod 600 /opt/consiste/legal-certificados/.env

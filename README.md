@@ -115,6 +115,7 @@ Antes de qualquer atualizacao em producao, faca backup de:
 data/app.db
 storage/certificados/
 storage/certificados_arquivados/
+storage/documentos_identificacao/
 .env
 ```
 

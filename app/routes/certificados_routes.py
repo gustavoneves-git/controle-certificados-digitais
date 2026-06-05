@@ -17,9 +17,11 @@ from app.services.certificado_reader_service import SenhaCertificadoInvalida, le
 from app.services.certificado_storage_service import (
     arquivar_certificado,
     caminho_permitido,
+    extensao_documento_identificacao_valida,
     extensao_valida,
     remover_certificado,
     salvar_certificado,
+    salvar_documento_identificacao,
 )
 from app.services.crypto_service import criptografar_senha, descriptografar_senha
 from app.services.telefone_service import (
@@ -93,7 +95,7 @@ def novo():
     nome_contato = request.form.get("nome_contato", "").strip()
     sexo_contato = request.form.get("sexo_contato", "").strip().upper()
     email_contato = request.form.get("email_contato", "").strip()
-    documento_identificacao = request.form.get("documento_identificacao", "").strip()
+    documento_identificacao_upload = request.files.get("documento_identificacao_arquivo")
     telefone_limpo = normalizar_telefone(request.form.get("telefone_limpo", "").strip())
     observacao = request.form.get("observacao", "").strip()
 
@@ -108,6 +110,9 @@ def novo():
 
     if not telefone_valido:
         flash("Telefone invalido. Use o formato +55 11 99999-9999 ou deixe em branco para preencher depois.", "danger")
+        return redirect(url_for("certificados.novo"))
+    if documento_identificacao_upload and documento_identificacao_upload.filename and not extensao_documento_identificacao_valida(documento_identificacao_upload.filename):
+        flash("Arquivo de RG/CNH invalido. Envie PDF, imagem ou documento editavel comum.", "danger")
         return redirect(url_for("certificados.novo"))
     conteudo = arquivo.read()
     arquivo.seek(0)
@@ -176,6 +181,14 @@ def novo():
         else calcular_status_contato(nome_contato, sexo_contato, telefone_limpo)
     )
     caminho = salvar_certificado(arquivo, current_app.config["STORAGE_CERTIFICADOS"])
+    documento_identificacao = None
+    documento_identificacao_arquivo = None
+    if documento_identificacao_upload and documento_identificacao_upload.filename:
+        documento_identificacao = documento_identificacao_upload.filename
+        documento_identificacao_arquivo = salvar_documento_identificacao(
+            documento_identificacao_upload,
+            current_app.config["STORAGE_DOCUMENTOS_IDENTIFICACAO"],
+        )
     certificado_id = certificados.create_certificado(
         {
             "nome_arquivo_original": arquivo.filename,
@@ -185,6 +198,7 @@ def novo():
             "sexo_contato": sexo_contato,
             "email_contato": email_contato,
             "documento_identificacao": documento_identificacao,
+            "documento_identificacao_arquivo": documento_identificacao_arquivo,
             "telefone_limpo": telefone_limpo,
             "observacao": observacao,
             "status": status_vencimento,
@@ -286,7 +300,7 @@ def editar(certificado_id):
     nome_contato = request.form.get("nome_contato", "").strip()
     sexo_contato = request.form.get("sexo_contato", "").strip().upper()
     email_contato = request.form.get("email_contato", "").strip()
-    documento_identificacao = request.form.get("documento_identificacao", "").strip()
+    documento_identificacao_upload = request.files.get("documento_identificacao_arquivo")
     telefone_limpo = normalizar_telefone(request.form.get("telefone_limpo", "").strip())
     observacao = request.form.get("observacao", "").strip()
     senha = request.form.get("senha", "")
@@ -297,8 +311,19 @@ def editar(certificado_id):
     if telefone_limpo and not is_telefone_limpo_valido(telefone_limpo):
         flash("Telefone invalido. Use o formato +55 11 99999-9999 ou deixe em branco.", "danger")
         return redirect(url_for("certificados.editar", certificado_id=certificado_id))
+    if documento_identificacao_upload and documento_identificacao_upload.filename and not extensao_documento_identificacao_valida(documento_identificacao_upload.filename):
+        flash("Arquivo de RG/CNH invalido. Envie PDF, imagem ou documento editavel comum.", "danger")
+        return redirect(url_for("certificados.editar", certificado_id=certificado_id))
 
     status_contato = calcular_status_contato(nome_contato, sexo_contato, telefone_limpo)
+    documento_identificacao = certificado["documento_identificacao"]
+    documento_identificacao_arquivo = certificado["documento_identificacao_arquivo"] if "documento_identificacao_arquivo" in certificado.keys() else None
+    if documento_identificacao_upload and documento_identificacao_upload.filename:
+        documento_identificacao = documento_identificacao_upload.filename
+        documento_identificacao_arquivo = salvar_documento_identificacao(
+            documento_identificacao_upload,
+            current_app.config["STORAGE_DOCUMENTOS_IDENTIFICACAO"],
+        )
 
     troca_certificado = arquivo is not None and arquivo.filename
     if troca_certificado:
@@ -370,6 +395,7 @@ def editar(certificado_id):
                 "sexo_contato": sexo_contato,
                 "email_contato": email_contato,
                 "documento_identificacao": documento_identificacao,
+                "documento_identificacao_arquivo": documento_identificacao_arquivo,
                 "telefone_limpo": telefone_limpo,
                 "observacao": observacao,
                 "status": status_vencimento,
@@ -398,6 +424,7 @@ def editar(certificado_id):
             "sexo_contato": sexo_contato,
             "email_contato": email_contato,
             "documento_identificacao": documento_identificacao,
+            "documento_identificacao_arquivo": documento_identificacao_arquivo,
             "telefone_limpo": telefone_limpo,
             "observacao": observacao,
             "status_contato": status_contato,
@@ -441,6 +468,31 @@ def download(certificado_id):
         Path(certificado["caminho_arquivo"]).resolve(),
         as_attachment=True,
         download_name=certificado["nome_arquivo_original"],
+    )
+
+
+@certificados_bp.route("/<int:certificado_id>/documento-identificacao/download")
+def download_documento_identificacao(certificado_id):
+    certificado = certificados.get_certificado(certificado_id)
+    if certificado is None:
+        flash("Certificado nao encontrado.", "warning")
+        return redirect(url_for("certificados.listar"))
+    caminho_documento = certificado["documento_identificacao_arquivo"] if "documento_identificacao_arquivo" in certificado.keys() else None
+    if not caminho_documento or not caminho_permitido(
+        caminho_documento,
+        current_app.config["STORAGE_DOCUMENTOS_IDENTIFICACAO"],
+    ):
+        flash("Documento RG/CNH nao encontrado.", "warning")
+        return redirect(url_for("certificados.detalhe", certificado_id=certificado_id))
+    auditoria.registrar_evento(
+        certificado_id,
+        "DOCUMENTO_IDENTIFICACAO_BAIXADO",
+        "Arquivo de RG/CNH baixado pelo usuario.",
+    )
+    return send_file(
+        Path(caminho_documento).resolve(),
+        as_attachment=True,
+        download_name=certificado["documento_identificacao"] or "documento_identificacao",
     )
 
 

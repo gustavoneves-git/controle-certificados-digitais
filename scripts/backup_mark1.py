@@ -87,6 +87,10 @@ def criar_backup(backup_dir=None, keep=3, encrypt=False, delete_plain=False):
         os.getenv("STORAGE_CERTIFICADOS_ARQUIVADOS"),
         "storage/certificados_arquivados",
     )
+    storage_documentos = _resolve_path(
+        os.getenv("STORAGE_DOCUMENTOS_IDENTIFICACAO"),
+        "storage/documentos_identificacao",
+    )
     env_path = PROJECT_ROOT / ".env"
     backup_dir = _resolve_path(backup_dir or os.getenv("BACKUP_DIR"), "backups")
     backup_dir.mkdir(parents=True, exist_ok=True)
@@ -113,6 +117,10 @@ def criar_backup(backup_dir=None, keep=3, encrypt=False, delete_plain=False):
         if (staged / "storage" / "certificados_arquivados").exists():
             manifest_items.append("storage/certificados_arquivados")
 
+        _copy_tree_if_exists(storage_documentos, staged / "storage" / "documentos_identificacao")
+        if (staged / "storage" / "documentos_identificacao").exists():
+            manifest_items.append("storage/documentos_identificacao")
+
         if env_path.exists():
             shutil.copy2(env_path, staged / ".env")
             manifest_items.append(".env")
@@ -122,6 +130,7 @@ def criar_backup(backup_dir=None, keep=3, encrypt=False, delete_plain=False):
             "database_path": str(database_path),
             "storage_certificados": str(storage_certificados),
             "storage_certificados_arquivados": str(storage_arquivados),
+            "storage_documentos_identificacao": str(storage_documentos),
             "items": manifest_items,
         }
         (staged / "manifest.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")

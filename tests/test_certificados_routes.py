@@ -80,6 +80,7 @@ def _app(tmp_path, monkeypatch):
             "DATABASE_PATH": str(tmp_path / "app.db"),
             "STORAGE_CERTIFICADOS": str(tmp_path / "certificados"),
             "STORAGE_CERTIFICADOS_ARQUIVADOS": str(tmp_path / "certificados_arquivados"),
+            "STORAGE_DOCUMENTOS_IDENTIFICACAO": str(tmp_path / "documentos_identificacao"),
         }
     )
 
@@ -347,6 +348,34 @@ def test_upload_com_telefone_do_certificado_sem_nome_marca_contato_a_confirmar(t
     assert certificado["status_contato"] == "SEM_CONTATO"
 
 
+def test_upload_salva_documento_identificacao_como_arquivo(tmp_path, monkeypatch):
+    app = _app(tmp_path, monkeypatch)
+    client = app.test_client()
+
+    response = client.post(
+        "/certificados/novo",
+        data={
+            "arquivo": (io.BytesIO(_pfx_bytes()), "cliente.pfx"),
+            "senha": "123456",
+            "nome_contato": "Maria",
+            "sexo_contato": "MULHER",
+            "telefone_limpo": "+55 47 91603-1398",
+            "documento_identificacao_arquivo": (io.BytesIO(b"documento"), "cnh.pdf"),
+            "observacao": "",
+        },
+        content_type="multipart/form-data",
+    )
+
+    assert response.status_code == 302
+    certificado = _db_rows(app.config["DATABASE_PATH"], "certificados")[0]
+    assert certificado["documento_identificacao"] == "cnh.pdf"
+    assert certificado["documento_identificacao_arquivo"]
+
+    download = client.get(f"/certificados/{certificado['id']}/documento-identificacao/download")
+    assert download.status_code == 200
+    assert download.data == b"documento"
+
+
 def test_editar_dados_de_contato_atualiza_status_contato_e_auditoria(tmp_path, monkeypatch):
     app = _app(tmp_path, monkeypatch)
     client = app.test_client()
@@ -375,10 +404,11 @@ def test_editar_dados_de_contato_atualiza_status_contato_e_auditoria(tmp_path, m
             "nome_contato": "Jose Rubens",
             "sexo_contato": "HOMEM",
             "email_contato": "jose@example.com",
-            "documento_identificacao": "CNH 123456789",
+            "documento_identificacao_arquivo": (io.BytesIO(b"cnh"), "jose-cnh.pdf"),
             "telefone_limpo": "+55 47 91603-1398",
             "observacao": "Responsavel confirmado.",
         },
+        content_type="multipart/form-data",
         follow_redirects=True,
     )
 
@@ -387,7 +417,8 @@ def test_editar_dados_de_contato_atualiza_status_contato_e_auditoria(tmp_path, m
     assert atualizado["nome_contato"] == "Jose Rubens"
     assert atualizado["sexo_contato"] == "HOMEM"
     assert atualizado["email_contato"] == "jose@example.com"
-    assert atualizado["documento_identificacao"] == "CNH 123456789"
+    assert atualizado["documento_identificacao"] == "jose-cnh.pdf"
+    assert atualizado["documento_identificacao_arquivo"]
     assert atualizado["telefone_limpo"] == "5547916031398"
     assert atualizado["status_contato"] == "COM_CONTATO"
     eventos = [
@@ -418,7 +449,7 @@ def test_editar_substitui_certificado_do_mesmo_documento_e_arquiva_antigo(tmp_pa
             "nome_contato": "Maria",
             "sexo_contato": "MULHER",
             "email_contato": "maria@example.com",
-            "documento_identificacao": "RG 123456",
+            "documento_identificacao_arquivo": (io.BytesIO(b"rg"), "maria-rg.pdf"),
             "telefone_limpo": "+55 47 91603-1398",
             "observacao": "Certificado renovado.",
         },
@@ -433,7 +464,7 @@ def test_editar_substitui_certificado_do_mesmo_documento_e_arquiva_antigo(tmp_pa
     assert atualizado["cnpj_cpf"] == "44555666000111"
     assert atualizado["nome_arquivo_original"] == "empresa_substituicao_novo.pfx"
     assert atualizado["email_contato"] == "maria@example.com"
-    assert atualizado["documento_identificacao"] == "RG 123456"
+    assert atualizado["documento_identificacao"] == "maria-rg.pdf"
     assert atualizado["telefone_limpo"] == "5547916031398"
     assert not caminho_antigo.exists()
     assert Path(atualizado["caminho_arquivo"]).exists()
@@ -467,7 +498,6 @@ def test_editar_bloqueia_certificado_de_documento_diferente(tmp_path, monkeypatc
             "nome_contato": "Maria",
             "sexo_contato": "MULHER",
             "email_contato": "",
-            "documento_identificacao": "",
             "telefone_limpo": "+55 47 91603-1398",
             "observacao": "",
         },
@@ -503,7 +533,6 @@ def test_editar_bloqueia_certificado_com_validade_menor_ou_igual(tmp_path, monke
             "nome_contato": "Maria",
             "sexo_contato": "MULHER",
             "email_contato": "",
-            "documento_identificacao": "",
             "telefone_limpo": "+55 47 91603-1398",
             "observacao": "",
         },

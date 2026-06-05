@@ -16,6 +16,9 @@ def create_app(test_config=None):
         STORAGE_CERTIFICADOS_ARQUIVADOS=os.getenv(
             "STORAGE_CERTIFICADOS_ARQUIVADOS", "storage/certificados_arquivados"
         ),
+        STORAGE_DOCUMENTOS_IDENTIFICACAO=os.getenv(
+            "STORAGE_DOCUMENTOS_IDENTIFICACAO", "storage/documentos_identificacao"
+        ),
         APP_LOGIN_USER=os.getenv("APP_LOGIN_USER"),
         APP_LOGIN_PASSWORD_HASH=os.getenv("APP_LOGIN_PASSWORD_HASH"),
         AUTH_ENABLED=True,
@@ -43,6 +46,7 @@ def create_app(test_config=None):
     os.makedirs(os.path.dirname(app.config["DATABASE_PATH"]) or ".", exist_ok=True)
     os.makedirs(app.config["STORAGE_CERTIFICADOS"], exist_ok=True)
     os.makedirs(app.config["STORAGE_CERTIFICADOS_ARQUIVADOS"], exist_ok=True)
+    os.makedirs(app.config["STORAGE_DOCUMENTOS_IDENTIFICACAO"], exist_ok=True)
 
     from app.routes.dashboard_routes import dashboard_bp
     from app.routes.certificados_routes import certificados_bp
