@@ -18,6 +18,10 @@ def test_config_entrada_onvio_monta_variaveis_do_env(tmp_path, monkeypatch):
             "ONVIO_HEADLESS": False,
             "ONVIO_USER_DATA_DIR": str(tmp_path / "onvio_browser"),
             "ONVIO_WAIT_SECONDS": 30,
+            "MICROSOFT_GRAPH_TENANT_ID": "",
+            "MICROSOFT_GRAPH_CLIENT_ID": "",
+            "MICROSOFT_GRAPH_CLIENT_SECRET": "",
+            "MICROSOFT_GRAPH_USER_EMAIL": "",
         }
     )
 
@@ -30,6 +34,28 @@ def test_config_entrada_onvio_monta_variaveis_do_env(tmp_path, monkeypatch):
     assert config.browser == "edge"
     assert config.user_data_dir == tmp_path / "onvio_browser"
     assert config.wait_seconds == 30
+    assert config.codigo_provider is None
+
+
+def test_config_entrada_onvio_usa_graph_quando_configurado(tmp_path, monkeypatch):
+    monkeypatch.setenv("CERT_PASSWORD_KEY", "x" * 44)
+    app = create_app(
+        {
+            "TESTING": True,
+            "DATABASE_PATH": str(tmp_path / "app.db"),
+            "ONVIO_EMAIL": "usuario@example.com",
+            "ONVIO_PASSWORD": "senha",
+            "MICROSOFT_GRAPH_TENANT_ID": "tenant",
+            "MICROSOFT_GRAPH_CLIENT_ID": "client",
+            "MICROSOFT_GRAPH_CLIENT_SECRET": "secret",
+            "MICROSOFT_GRAPH_USER_EMAIL": "usuario@example.com",
+        }
+    )
+
+    with app.app_context():
+        config = config_entrada_onvio()
+
+    assert config.codigo_provider is not None
 
 
 def test_config_entrada_onvio_exige_credenciais():

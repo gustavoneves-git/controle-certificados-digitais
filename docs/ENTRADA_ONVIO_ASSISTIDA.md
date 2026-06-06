@@ -23,9 +23,17 @@ ONVIO_BROWSER=chrome
 ONVIO_HEADLESS=0
 ONVIO_USER_DATA_DIR=storage/onvio_browser
 ONVIO_WAIT_SECONDS=25
+MICROSOFT_GRAPH_TENANT_ID=
+MICROSOFT_GRAPH_CLIENT_ID=
+MICROSOFT_GRAPH_CLIENT_SECRET=
+MICROSOFT_GRAPH_USER_EMAIL=
+MICROSOFT_GRAPH_LOOKBACK_MINUTES=10
+MICROSOFT_GRAPH_POLL_SECONDS=45
 ```
 
 Use `ONVIO_HEADLESS=0` para teste assistido, porque o navegador aparece na tela.
+
+As variaveis `MICROSOFT_GRAPH_*` permitem buscar automaticamente no e-mail o codigo de verificacao enviado pelo Onvio. Se elas nao estiverem configuradas, o teste continua em modo manual: o navegador fica aberto para o usuario digitar o codigo.
 
 ## Rodar teste assistido
 
