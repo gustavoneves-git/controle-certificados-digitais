@@ -25,7 +25,7 @@ def create_app(test_config=None):
         ONVIO_BROWSER=os.getenv("ONVIO_BROWSER", "chrome"),
         ONVIO_HEADLESS=os.getenv("ONVIO_HEADLESS", "0") == "1",
         ONVIO_USER_DATA_DIR=os.getenv("ONVIO_USER_DATA_DIR", "storage/onvio_browser"),
-        ONVIO_WAIT_SECONDS=int(os.getenv("ONVIO_WAIT_SECONDS", "25")),
+        ONVIO_WAIT_SECONDS=int(os.getenv("ONVIO_WAIT_SECONDS", "60")),
         MICROSOFT_GRAPH_TENANT_ID=os.getenv("MICROSOFT_GRAPH_TENANT_ID", ""),
         MICROSOFT_GRAPH_CLIENT_ID=os.getenv("MICROSOFT_GRAPH_CLIENT_ID", ""),
         MICROSOFT_GRAPH_CLIENT_SECRET=os.getenv("MICROSOFT_GRAPH_CLIENT_SECRET", ""),

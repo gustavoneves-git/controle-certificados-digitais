@@ -3,6 +3,7 @@ data/*.db
 storage/certificados/*
 storage/certificados_arquivados/*
 storage/documentos_identificacao/*
+storage/onvio_browser/*
 __pycache__/
 .venv/
 *.pyc

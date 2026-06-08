@@ -6,7 +6,7 @@ from typing import Callable, Optional
 
 try:
     from selenium import webdriver
-    from selenium.common.exceptions import WebDriverException
+    from selenium.common.exceptions import TimeoutException, WebDriverException
     from selenium.webdriver.common.by import By
     from selenium.webdriver.support.ui import WebDriverWait
 except ModuleNotFoundError:
@@ -15,6 +15,9 @@ except ModuleNotFoundError:
     WebDriverWait = None
 
     class WebDriverException(Exception):
+        pass
+
+    class TimeoutException(Exception):
         pass
 
 
@@ -141,7 +144,13 @@ def autenticar_onvio(driver, wait, config: EntrarOnvioConfig) -> EntrarOnvioResu
     senha.clear()
     senha.send_keys(config.password)
     _avancar_login(driver)
-    wait.until(lambda d: _esta_em_mfa(d) or not _esta_em_login(d))
+    try:
+        wait.until(lambda d: _esta_em_mfa(d) or not _esta_em_login(d))
+    except TimeoutException as exc:
+        raise OnvioEntradaErro(
+            "Onvio demorou para concluir o login apos enviar a senha. "
+            "Tente novamente; se o navegador mostrar codigo ou aviso de seguranca, conclua manualmente."
+        ) from exc
     if _esta_em_mfa(driver):
         _resolver_validacao_adicional(driver, wait, config)
         return _resultado(driver, estado_login_onvio(driver))
