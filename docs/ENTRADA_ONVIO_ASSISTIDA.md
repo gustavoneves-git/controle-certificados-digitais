@@ -45,6 +45,30 @@ O script abre o navegador, tenta autenticar no Onvio e mostra o estado final.
 
 Se o Onvio pedir codigo de verificacao e ainda nao houver provedor de codigo configurado, digite o codigo manualmente no navegador aberto. Depois podemos automatizar essa parte com a mesma ideia usada no sistema SN, mas nao nesta primeira etapa.
 
+## Rodar teste ate Contatos do Messenger
+
+O caminho validado na pratica e:
+
+1. entrar no painel principal do Onvio;
+2. clicar no menu em formato hamburger;
+3. clicar em Messenger;
+4. na tela do Messenger, clicar em Contatos;
+5. pesquisar o telefone do cliente usando apenas numeros.
+
+Para testar somente esse caminho, sem abrir conversa e sem enviar mensagem:
+
+```bash
+.venv/bin/python scripts/testar_messenger_contatos.py
+```
+
+Para preencher tambem a busca por telefone:
+
+```bash
+.venv/bin/python scripts/testar_messenger_contatos.py --telefone "+55 11 97380-7543"
+```
+
+O sistema limpa o telefone antes da busca. Exemplo: `+55 11 97380-7543` vira `5511973807543`.
+
 ## Cuidados
 
 - Nao envie senha Onvio ao GitHub, Codex ou ChatGPT.

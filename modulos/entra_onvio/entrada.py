@@ -75,6 +75,56 @@ def entrar_onvio(config: EntrarOnvioConfig):
     return driver
 
 
+def abrir_messenger_onvio(driver, wait, config: EntrarOnvioConfig) -> None:
+    _registrar(config, "messenger", "INFO", "Abrindo menu de aplicacoes do Onvio.")
+    try:
+        _clicar_menu_aplicacoes(driver)
+        wait.until(lambda d: _aplicacao_menu_visivel(d, "Messenger"))
+        _registrar(config, "messenger", "INFO", "Abrindo Messenger.")
+        janelas_antes = list(driver.window_handles)
+        _clicar_aplicacao_menu(driver, "Messenger")
+        _trocar_para_janela_messenger(driver, wait, janelas_antes)
+        driver.switch_to.default_content()
+    except OnvioEntradaErro:
+        _registrar(config, "messenger", "INFO", "Menu nao respondeu. Abrindo Messenger por URL direta.")
+        driver.get("https://app.gestta.com.br/attendance/#/chat/contact-list")
+    _aguardar_messenger(driver, wait)
+    _registrar(config, "messenger", "SUCESSO", "Messenger aberto.")
+
+
+def abrir_contatos_messenger(driver, wait, config: EntrarOnvioConfig) -> None:
+    _registrar(config, "contatos", "INFO", "Abrindo aba Contatos do Messenger.")
+    if "contact-list" in driver.current_url.lower() and (_campo_busca_contatos(driver) or _texto_visivel(driver, "ADICIONAR CONTATO")):
+        _registrar(config, "contatos", "SUCESSO", "Aba Contatos aberta.")
+        return
+    try:
+        _clicar_primeiro_texto(driver, ("Contatos", "CONTATOS"))
+    except OnvioEntradaErro:
+        try:
+            _clicar_texto_visivel(driver, "Contatos")
+        except OnvioEntradaErro:
+            try:
+                _clicar_texto_visivel(driver, "CONTATOS")
+            except OnvioEntradaErro:
+                driver.get("https://app.gestta.com.br/attendance/#/chat/contact-list")
+    wait.until(
+        lambda d: _campo_busca_contatos(d)
+        or _texto_visivel(d, "Buscar contatos")
+        or _texto_visivel(d, "ADICIONAR CONTATO")
+    )
+    _registrar(config, "contatos", "SUCESSO", "Aba Contatos aberta.")
+
+
+def buscar_contato_por_numero(driver, wait, numero_limpo: str, config: EntrarOnvioConfig) -> None:
+    if not numero_limpo or not numero_limpo.isdigit():
+        raise OnvioEntradaErro("Numero do cliente deve estar limpo, contendo apenas digitos.")
+    abrir_contatos_messenger(driver, wait, config)
+    campo = wait.until(lambda d: _campo_busca_contatos(d))
+    campo.clear()
+    campo.send_keys(numero_limpo)
+    _registrar(config, "buscar_contato", "SUCESSO", f"Busca preenchida com numero limpo ({len(numero_limpo)} digitos).")
+
+
 def criar_driver_onvio(config: EntrarOnvioConfig):
     _validar_selenium_disponivel()
     config.validar()
@@ -204,6 +254,13 @@ def _aplicar_opcoes_navegador(options, user_data_dir: Path, headless: bool) -> N
     options.add_argument("--no-default-browser-check")
     options.add_argument("--window-size=1366,900")
     options.add_argument("--disable-dev-shm-usage")
+    options.add_experimental_option(
+        "prefs",
+        {
+            "credentials_enable_service": False,
+            "profile.password_manager_enabled": False,
+        },
+    )
     if sys.platform != "win32":
         options.add_argument("--no-sandbox")
     if headless:
@@ -377,6 +434,154 @@ def _clicar_primeiro_texto(driver, textos) -> None:
     raise OnvioEntradaErro(f"Botao nao encontrado no Onvio: {', '.join(textos)}")
 
 
+def _clicar_texto_visivel(driver, texto: str) -> None:
+    xpath = f"//*[contains(normalize-space(.), { _xpath_literal(texto) })]"
+    for elemento in driver.find_elements(By.XPATH, xpath):
+        try:
+            if not elemento.is_displayed():
+                continue
+            driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", elemento)
+            try:
+                elemento.click()
+            except WebDriverException:
+                driver.execute_script("arguments[0].click();", elemento)
+            return
+        except WebDriverException:
+            continue
+    raise OnvioEntradaErro(f"Texto clicavel nao encontrado: {texto}")
+
+
+def _clicar_menu_aplicacoes(driver) -> None:
+    seletores = (
+        "button[aria-label='Menu']",
+        "[role='button'][aria-label='Menu']",
+        ".bm-header-app-menu-toggle",
+        ".tr-application-launcher",
+        ".application-launcher",
+        ".hamburger",
+        "button",
+    )
+    for seletor in seletores:
+        for elemento in driver.find_elements(By.CSS_SELECTOR, seletor):
+            try:
+                texto = (elemento.text or "").strip().lower()
+                if seletor == "button" and texto not in ("", "☰", "≡"):
+                    continue
+                if not elemento.is_displayed() or not elemento.is_enabled():
+                    continue
+                driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", elemento)
+                try:
+                    elemento.click()
+                except WebDriverException:
+                    driver.execute_script("arguments[0].click();", elemento)
+                return
+            except WebDriverException:
+                continue
+    raise OnvioEntradaErro("Menu de aplicacoes do Onvio nao foi encontrado.")
+
+
+def _clicar_aplicacao_menu(driver, titulo: str) -> None:
+    seletores = (
+        f"[title={_css_literal(titulo)}]",
+        f"a[title={_css_literal(titulo)}]",
+        f"button[title={_css_literal(titulo)}]",
+    )
+    for seletor in seletores:
+        for elemento in driver.find_elements(By.CSS_SELECTOR, seletor):
+            try:
+                if not elemento.is_displayed() or not elemento.is_enabled():
+                    continue
+                driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", elemento)
+                try:
+                    elemento.click()
+                except WebDriverException:
+                    driver.execute_script("arguments[0].click();", elemento)
+                return
+            except WebDriverException:
+                continue
+    _clicar_primeiro_texto(driver, (titulo,))
+
+
+def _aplicacao_menu_visivel(driver, titulo: str) -> bool:
+    for seletor in (
+        f"[title={_css_literal(titulo)}]",
+        f"a[title={_css_literal(titulo)}]",
+        f"button[title={_css_literal(titulo)}]",
+    ):
+        for elemento in driver.find_elements(By.CSS_SELECTOR, seletor):
+            try:
+                if elemento.is_displayed() and elemento.is_enabled():
+                    return True
+            except WebDriverException:
+                continue
+    return _texto_visivel(driver, titulo)
+
+
+def _aguardar_messenger(driver, wait) -> None:
+    wait.until(lambda d: _messenger_pronto(d))
+
+
+def _trocar_para_janela_messenger(driver, wait, janelas_antes) -> None:
+    try:
+        wait.until(lambda d: len(d.window_handles) > len(janelas_antes) or _parece_messenger(d))
+    except TimeoutException:
+        return
+    for handle in reversed(driver.window_handles):
+        driver.switch_to.window(handle)
+        if _parece_messenger(driver):
+            return
+    driver.switch_to.window(driver.window_handles[-1])
+
+
+def _parece_messenger(driver) -> bool:
+    url = driver.current_url.lower()
+    return (
+        "messenger" in url
+        or "gestta" in url
+        or _texto_visivel(driver, "Seja bem vindo")
+        or _texto_visivel(driver, "Pendentes")
+        or _texto_visivel(driver, "Em atendimento")
+        or _texto_visivel(driver, "Buscar conversas")
+        or _texto_visivel(driver, "Buscar contatos")
+    )
+
+
+def _messenger_pronto(driver) -> bool:
+    url = driver.current_url.lower()
+    return (
+        "gestta" in url
+        or _texto_visivel(driver, "Seja bem vindo")
+        or _texto_visivel(driver, "Pendentes")
+        or _texto_visivel(driver, "Em atendimento")
+        or _texto_visivel(driver, "Buscar conversas")
+        or _texto_visivel(driver, "Buscar contatos")
+    )
+
+
+def _campo_busca_contatos(driver):
+    return _primeiro_presente(
+        driver,
+        (
+            "input[placeholder*='Buscar contatos' i]",
+            "input[placeholder*='Buscar contato' i]",
+            "input[placeholder*='Buscar conversas' i]",
+            "input[type='search']",
+            "input",
+        ),
+    )
+
+
+def _texto_visivel(driver, texto: str) -> bool:
+    xpath = f"//*[contains(normalize-space(.), { _xpath_literal(texto) })]"
+    for elemento in driver.find_elements(By.XPATH, xpath):
+        try:
+            if elemento.is_displayed():
+                return True
+        except WebDriverException:
+            continue
+    return False
+
+
 def _xpath_literal(texto: str) -> str:
     if "'" not in texto:
         return f"'{texto}'"
@@ -384,6 +589,12 @@ def _xpath_literal(texto: str) -> str:
         return f'"{texto}"'
     partes = texto.split("'")
     return "concat(" + ", \"'\", ".join(f"'{parte}'" for parte in partes) + ")"
+
+
+def _css_literal(texto: str) -> str:
+    if '"' not in texto:
+        return f'"{texto}"'
+    return "'" + texto.replace("'", "\\'") + "'"
 
 
 def _resultado(driver, estado: str) -> EntrarOnvioResultado:
