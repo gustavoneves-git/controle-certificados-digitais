@@ -18,3 +18,8 @@ def get_mensagem(mensagem_id):
     return get_db().execute(
         "SELECT * FROM mensagens WHERE id = ?", (mensagem_id,)
     ).fetchone()
+
+
+def count_mensagens():
+    row = get_db().execute("SELECT COUNT(*) AS total FROM mensagens").fetchone()
+    return row["total"]

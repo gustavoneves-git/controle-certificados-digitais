@@ -69,6 +69,12 @@ Para preencher tambem a busca por telefone:
 
 O sistema limpa o telefone antes da busca. Exemplo: `+55 11 97380-7543` vira `5511973807543`.
 
+## Mensagens para certificado vencido
+
+Nesta etapa, a automacao de contato e pensada apenas para certificados vencidos.
+
+O sistema possui tres modelos de mensagem para certificado vencido e alterna entre eles a cada mensagem gerada. O objetivo e evitar que todos os contatos recebam exatamente o mesmo texto, mantendo o conteudo profissional e padronizado.
+
 ## Cuidados
 
 - Nao envie senha Onvio ao GitHub, Codex ou ChatGPT.

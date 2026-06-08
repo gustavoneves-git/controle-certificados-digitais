@@ -15,7 +15,7 @@ def gerar(certificado_id):
         flash("Certificado nao encontrado.", "warning")
         return redirect(url_for("certificados.listar"))
 
-    tipo, texto = gerar_mensagem(certificado)
+    tipo, texto = gerar_mensagem(certificado, indice_modelo=mensagens.count_mensagens())
     mensagem_id = mensagens.create_mensagem(
         certificado_id,
         certificado["telefone_limpo"],

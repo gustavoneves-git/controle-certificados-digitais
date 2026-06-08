@@ -3,7 +3,7 @@ from datetime import date
 from app.services.vencimento_service import VENCIDO
 
 
-def gerar_mensagem(certificado):
+def gerar_mensagem(certificado, indice_modelo=0):
     nome_contato = _nome_contato_com_tratamento(certificado)
     nome_empresa = certificado["nome_extraido"] or "empresa"
     documento = certificado["cnpj_cpf"] or "nao identificado"
@@ -13,13 +13,12 @@ def gerar_mensagem(certificado):
 
     if status == VENCIDO:
         tipo = "CERTIFICADO_VENCIDO"
-        texto = (
-            f"Ola, {nome_contato}, tudo bem?\n\n"
-            f"Estamos entrando em contato sobre o certificado digital da empresa {nome_empresa}, "
-            f"CNPJ/CPF {documento}.\n\n"
-            f"Identificamos que o certificado esta vencido desde {data_vencimento}. "
-            "Para mantermos os acessos e rotinas fiscais em dia, precisamos providenciar a regularizacao.\n\n"
-            "Ficamos no aguardo."
+        texto = _mensagem_vencido(
+            indice_modelo,
+            nome_contato=nome_contato,
+            nome_empresa=nome_empresa,
+            documento=documento,
+            data_vencimento=data_vencimento,
         )
     else:
         tipo = "CERTIFICADO_VENCENDO"
@@ -32,6 +31,34 @@ def gerar_mensagem(certificado):
             "Ficamos a disposicao."
         )
     return tipo, texto
+
+
+def _mensagem_vencido(indice_modelo, nome_contato, nome_empresa, documento, data_vencimento):
+    modelos = (
+        (
+            f"Ola, {nome_contato}, tudo bem?\n\n"
+            f"Estamos entrando em contato sobre o certificado digital da empresa {nome_empresa}, "
+            f"CNPJ/CPF {documento}.\n\n"
+            f"Identificamos que o certificado esta vencido desde {data_vencimento}. "
+            "Para mantermos os acessos e rotinas fiscais em dia, precisamos providenciar a renovacao.\n\n"
+            "Ficamos no aguardo."
+        ),
+        (
+            f"Ola, {nome_contato}, tudo bem?\n\n"
+            f"O certificado digital da empresa {nome_empresa}, CNPJ/CPF {documento}, "
+            f"consta como vencido desde {data_vencimento}.\n\n"
+            "Precisamos regularizar a renovacao para evitar bloqueios nas rotinas que dependem do certificado.\n\n"
+            "Pode nos retornar, por favor?"
+        ),
+        (
+            f"Ola, {nome_contato}, tudo bem?\n\n"
+            f"Verificamos que o certificado digital da empresa {nome_empresa}, CNPJ/CPF {documento}, "
+            f"venceu em {data_vencimento}.\n\n"
+            "Para dar continuidade aos acessos e obrigacoes da empresa, precisamos alinhar a renovacao do certificado.\n\n"
+            "Aguardamos seu retorno."
+        ),
+    )
+    return modelos[indice_modelo % len(modelos)]
 
 
 def _nome_contato_com_tratamento(certificado):
